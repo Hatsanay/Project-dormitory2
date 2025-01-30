@@ -20,7 +20,7 @@ const getReqById = async (req, res) => {
     mainr_ProblemDescription,
     mainr_Date,
     petitiontype.Type AS Type,
-    status.stat_Name AS status,
+    stacase.StaCase_Name AS status,
     CONCAT(
         MIN(schedulerepairs.Date), ' ', 
         MIN(schedulerepairs.startTime), ' - ', 
@@ -34,20 +34,20 @@ FROM
     INNER JOIN renting ON renting.renting_ID = maintenancerequests.mainr_renting_ID
     INNER JOIN users ON users.user_ID = renting.renting_user_ID
     INNER JOIN petitiontype ON petitiontype.ID = maintenancerequests.mainr_pattyp_ID
-    INNER JOIN status ON status.stat_ID = maintenancerequests.mainr_Stat_ID
+    INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
     INNER JOIN room ON room.room_ID = renting.renting_room_ID
     LEFT JOIN schedulerepairs ON schedulerepairs.sdr_mainr_ID = maintenancerequests.mainr_ID
 WHERE
     users.user_ID = ?
-    AND maintenancerequests.mainr_Stat_ID NOT IN ('STA000017', 'STA000016', 'STA000018')
+    AND maintenancerequests.mainr_Stat_ID NOT IN ('STC000007', 'STC000006', 'STC000008')
 GROUP BY
     mainr_ID
 ORDER BY
     maintenancerequests.mainr_ID ASC;
     `;
-    //STA000017 = ยกเลิกการแจ้งซ่อม
-    //STA000016 = เสร็จสิ้น
-    //STA000018 = เจ้าหน้าที่ปฎิเสธคำร้อง
+    //STC000007 = ยกเลิกการแจ้งซ่อม
+    //STC000006 = เสร็จสิ้น
+    //STC000008 = เจ้าหน้าที่ปฎิเสธคำร้อง
 
 
     const [result] = await db.promise().query(query, [userId]);
@@ -94,26 +94,26 @@ const getHisReqById = async (req, res) => {
         mainr_ProblemDescription,
         mainr_Date,
         petitiontype.Type AS Type,
-        status.stat_Name AS status,
+        stacase.StaCase_Name AS status,
         maintenancerequests.mainr_SuccessDate AS SuccessDate
       FROM 
         maintenancerequests
           INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
           INNER JOIN users on users.user_ID = renting.renting_user_ID
           INNER JOIN petitiontype on petitiontype.ID = mainr_pattyp_ID
-          INNER JOIN status on status.stat_ID = maintenancerequests.mainr_Stat_ID
+          INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
           INNER JOIN room on room.room_ID = renting.renting_room_ID
       WHERE
         users.user_ID = ?
-        AND (maintenancerequests.mainr_Stat_ID = "STA000016"
-        OR maintenancerequests.mainr_Stat_ID = "STA000017"
-        OR maintenancerequests.mainr_Stat_ID = "STA000018")
+        AND (maintenancerequests.mainr_Stat_ID = "STC000006"
+        OR maintenancerequests.mainr_Stat_ID = "STC000007"
+        OR maintenancerequests.mainr_Stat_ID = "STC000008")
       ORDER BY
         maintenancerequests.mainr_ID ASC
     `;
-    //STA000017 = ยกเลิกการแจ้งซ่อม
-    //STA000016 = เสร็จสิ้น
-    //STA000018 = เจ้าหน้าที่ปฎิเสธคำร้อง
+    //STC000007 = ยกเลิกการแจ้งซ่อม
+    //STC000006 = เสร็จสิ้น
+    //STC000008 = เจ้าหน้าที่ปฎิเสธคำร้อง
 
     const [result] = await db.promise().query(query, [userId]);
 
@@ -189,7 +189,7 @@ const getPetitiontype = async (req, res) => {
     const query = `
       SELECT ID, Type, petitionType_stat_ID
       FROM petitiontype
-      WHERE petitionType_stat_ID = 'STA000006'
+      WHERE petitionType_stat_ID = 'SUS000001'
     `;
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
@@ -274,10 +274,10 @@ const submitRepairRequest = async (req, res) => {
         reqDate,
         rentingID,
         reqPetitiontype,
-        "STA000011",
+        "STC000001",
       ]);
 
-    //STA000011 = รอนิติบุคคลตรวจสอบ
+    //STC000001 = รอนิติบุคคลตรวจสอบ
     
     if (files && files.length > 0) {
       const imageQuery = `
@@ -349,7 +349,7 @@ const getImgById = async (req, res) => {
 ///////////////////////////////
 const cancelReq = async (req, res) => {
     
-  const { mainr_ID, mainrstatus_ID = "STA000017" } = req.body;  //STA000017 = ยกเลิกการแจ้งซ่อม
+  const { mainr_ID, mainrstatus_ID = "STC000007" } = req.body;  //STC000007 = ยกเลิกการแจ้งซ่อม
 
   try {
     if (!mainr_ID) {
@@ -372,7 +372,7 @@ const cancelReq = async (req, res) => {
 };
 
 const successReq = async (req, res) => {
-  const { mainr_ID, mainrstatus_ID = "STA000016" } = req.body; //STA000016 = เสร็จสิ้น
+  const { mainr_ID, mainrstatus_ID = "STC000006" } = req.body; //STC000006 = เสร็จสิ้น
 
   try {
     if (!mainr_ID) {
@@ -413,7 +413,7 @@ const getroomByID = async (req, res) => {
       INNER JOIN room on room.room_ID = renting.renting_room_ID
     WHERE
       renting_user_ID = ?
-      AND renting_stat_ID = "STA000009"
+      AND renting_stat_ID = "SRT000001"
     `;
     //STA000009 = เช่า
 

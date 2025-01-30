@@ -6,25 +6,25 @@ const path = require("path");
 const getWithdrawReq = async (req, res) => {
   try {
     const query = `SELECT 
-      requisition_ID,
-      requisition_Date,
-      requisition_mainr_ID,
-      requisition_user_ID,
-      CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
-      status.stat_Name AS statusRequis,
-      COUNT(requisition_ID) AS countlist
-  FROM 
-      requisition
-      INNER JOIN maintenancerequests on maintenancerequests.mainr_ID = requisition.requisition_mainr_ID
-      INNER JOIN users on users.user_ID = requisition.requisition_user_ID
-      INNER JOIN status  ON status.stat_ID = requisition.requisition_stat_ID
-      INNER JOIN requisition_list on requisition_list.reqlist_requisition_ID = requisition.requisition_ID
-      WHERE maintenancerequests.mainr_Stat_ID = "STA000023"
-      AND requisition.requisition_stat_ID = "STA000020"
+    requisition_ID,
+    requisition_Date,
+    requisition_mainr_ID,
+    requisition_user_ID,
+    CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
+    stareq.StaReq_Name AS statusRequis,
+    COUNT(requisition_ID) AS countlist
+FROM 
+    requisition
+    INNER JOIN maintenancerequests on maintenancerequests.mainr_ID = requisition.requisition_mainr_ID
+    INNER JOIN users on users.user_ID = requisition.requisition_user_ID
+    INNER JOIN stareq on stareq.StaReq_ID = requisition.requisition_stat_ID
+    INNER JOIN requisition_list on requisition_list.reqlist_requisition_ID = requisition.requisition_ID
+    WHERE maintenancerequests.mainr_Stat_ID = "STC000009"
+    AND requisition.requisition_stat_ID = "SRQ000002"
 
- GROUP BY requisition_ID
+GROUP BY requisition_ID
         `;
-    //STA000023 = กำลังดำเนินการตรวจสอบ
+    //STC000009 = กำลังดำเนินการตรวจสอบ
     //STA000020 = ยังไม่เบิก
     const [result] = await db.promise().query(query);
     if (result.length === 0) {
@@ -65,14 +65,14 @@ const getWithdrawReqlist = async (req, res) => {
     requisition_mainr_ID,
     requisition_user_ID,
     CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
-    statusRequi.stat_Name AS statusRequis,
+    statusRequi.StaReq_ID AS statusRequis,
     requisition_list.reqlist_order AS listnumber,
     requisition_list.reqlist_stock_ID AS stockid,
     stock.name AS stockname,
     requisition_list.quantity AS withdrawquantity,
     stock.quantity AS stockquantity,
     unit.name AS unit,
-    statusRequilist.stat_Name AS statusRequislist,
+    statusRequilist.StaReq_ID AS statusRequislist,
     CASE 
         WHEN stock.quantity < requisition_list.quantity THEN requisition_list.quantity - stock.quantity 
         ELSE 0 
@@ -81,19 +81,19 @@ FROM
     requisition
     INNER JOIN maintenancerequests on maintenancerequests.mainr_ID = requisition.requisition_mainr_ID
     INNER JOIN users on users.user_ID = requisition.requisition_user_ID
-    INNER JOIN status statusRequi ON statusRequi.stat_ID = requisition.requisition_stat_ID
+    INNER JOIN stareq statusRequi ON statusRequi.StaReq_ID = requisition.requisition_stat_ID
     INNER JOIN requisition_list on requisition_list.reqlist_requisition_ID = requisition.requisition_ID
     INNER JOIN stock on stock.ID = requisition_list.reqlist_stock_ID
-    INNER JOIN status statusRequilist on statusRequilist.stat_ID = requisition.requisition_stat_ID
+    INNER JOIN stareq statusRequilist on statusRequilist.StaReq_ID = requisition.requisition_stat_ID
     INNER JOIN unit on unit.ID = stock.stock_unit_ID
-WHERE maintenancerequests.mainr_Stat_ID = "STA000023"
-OR maintenancerequests.mainr_Stat_ID = "STA000013"
-OR maintenancerequests.mainr_Stat_ID = "STA000014"
+WHERE maintenancerequests.mainr_Stat_ID = "STC000009"
+OR maintenancerequests.mainr_Stat_ID = "STC000003"
+OR maintenancerequests.mainr_Stat_ID = "STC000004"
 AND requisition_ID =  ?
       `;
-    //STA000023 = กำลังดำเนินการตรวจสอบ
-    //STA000013 = รอนัด
-    //STA000014 = รอซ่อม
+    //STC000005 = กำลังดำเนินการตรวจสอบ
+    //STC000003 = รอนัด
+    //STC000004 = รอซ่อม
     const [result] = await db.promise().query(query, [RequeiId]);
     if (result.length === 0) {
       return res.status(404).json({ error: "ไม่พบข้อมูลการแจ้งเบิก" });
@@ -121,7 +121,7 @@ AND requisition_ID =  ?
 };
 
 const putReqWithdraw = async (req, res) => {
-  const { requisitionID, Withdrawtatus_ID = "STA000019", mainr_ID } = req.body;  //STA000019 = รอเบิก
+  const { requisitionID, Withdrawtatus_ID = "SRQ000001", mainr_ID } = req.body;  //STA000019 = รอเบิก
 
   try {
     if (!requisitionID) {
@@ -172,7 +172,7 @@ const putReqWithdraw = async (req, res) => {
     }
     const updatemaintenancerequests = `
     UPDATE maintenancerequests 
-    SET mainr_Stat_ID = "STA000013"
+    SET mainr_Stat_ID = "STC000003"
     WHERE mainr_ID = ?
   `;
     await db.promise().query(updatemaintenancerequests, [mainr_ID]);
@@ -192,24 +192,24 @@ const getWithdraw = async (req, res) => {
       requisition_mainr_ID,
       requisition_user_ID,
       CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
-      status.stat_Name AS statusRequis,
+      stareq.StaReq_Name AS statusRequis,
       COUNT(requisition_ID) AS countlist
   FROM 
       requisition
       INNER JOIN maintenancerequests on maintenancerequests.mainr_ID = requisition.requisition_mainr_ID
       INNER JOIN users on users.user_ID = requisition.requisition_user_ID
-      INNER JOIN status  ON status.stat_ID = requisition.requisition_stat_ID
+      INNER JOIN stareq on stareq.StaReq_ID = requisition.requisition_stat_ID
       INNER JOIN requisition_list on requisition_list.reqlist_requisition_ID = requisition.requisition_ID
-      WHERE maintenancerequests.mainr_Stat_ID = "STA000013"
-      OR maintenancerequests.mainr_Stat_ID = "STA000014"
-      AND requisition.requisition_stat_ID = "STA000019"
+      WHERE maintenancerequests.mainr_Stat_ID = "STC000003"
+      OR maintenancerequests.mainr_Stat_ID = "STC000004"
+      AND requisition.requisition_stat_ID = "SRQ000001"
 
  GROUP BY requisition_ID
         `;
 
-        //STA000013 = รอนัด
-        //STA000014 = รอซ่อม
-        //STA000019 = รอเบิก
+        //STC000003 = รอนัด
+        //STC000004 = รอซ่อม
+        //SRQ000001 = รอเบิก
     const [result] = await db.promise().query(query);
     if (result.length === 0) {
       return res.status(404).json({ error: "ไม่พบข้อมูลการแจ้งซ่อม" });
@@ -239,10 +239,10 @@ const getWithdraw = async (req, res) => {
 const putAcceptWithdraw = async (req, res) => {
   const {
     requisitionID,
-    statusRequisition = "STA000021",
-    statusRequisitionList = "STA000021",
+    statusRequisition = "SRQ000003",
+    statusRequisitionList = "SRQ000003",
   } = req.body;
-        //STA000021 = เบิกเสร็จสิ้น
+        //SRQ000003 = เบิกเสร็จสิ้น
   try {
     if (!requisitionID) {
       return res.status(400).json({ error: "โปรดระบุ requisitionID" });
@@ -291,7 +291,7 @@ const putAcceptWithdraw = async (req, res) => {
 };
 
 const cancelWithdraw = async (req, res) => {
-  const { requisitionID, cancelStatusID = "STA000024" } = req.body;
+  const { requisitionID, cancelStatusID = "SRQ000004" } = req.body;
 
   try {
     if (!requisitionID) {

@@ -14,7 +14,7 @@ const getInprogressCount = async (req, res) => {
     SELECT 
     COUNT(CASE WHEN maintenancerequests.mainr_Stat_ID IN ("STA000011","STA000012","STA000013","STA000014","STA000015") THEN 1 END) AS InprogressCount,
     COUNT(CASE WHEN maintenancerequests.mainr_Stat_ID IN ("STA000014","STA000015") THEN 1 END) AS ScheduledCount,
-    COUNT(CASE WHEN maintenancerequests.mainr_Stat_ID = "STA000016" THEN 1 END) AS CompletedCount,
+    COUNT(CASE WHEN maintenancerequests.mainr_Stat_ID = "STC000006" THEN 1 END) AS CompletedCount,
     COUNT(*) AS TotalCount
     FROM 
       maintenancerequests

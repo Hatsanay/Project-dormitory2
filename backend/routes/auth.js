@@ -42,6 +42,7 @@ const {
 } = require("../controllers/reqController");
 const {
   getReq,
+  getReqhistory,
   denyReq,
   sendtomacReq,
   getMacReq,
@@ -232,6 +233,7 @@ router.get("/getImgById", authenticateToken, getImgById);
 router.get("/getroomByID", authenticateToken, getroomByID);
 
 router.get("/getReq", authenticateToken, getReq);
+router.get("/getReqhistory", authenticateToken, getReqhistory);
 router.get("/getMacReq", authenticateToken, getMacReq);
 router.get("/getMacReqById", authenticateToken, getMacReqById);
 router.get("/getStock", authenticateToken, getStock);

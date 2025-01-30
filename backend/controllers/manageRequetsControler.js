@@ -11,20 +11,20 @@ const getReq = async (req, res) => {
       mainr_ProblemDescription,
       mainr_Date,
       petitiontype.Type AS Type,
-      status.stat_Name AS status
+      stacase.StaCase_Name AS status
     FROM 
       maintenancerequests
         INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
         INNER JOIN users on users.user_ID = renting.renting_user_ID
         INNER JOIN petitiontype on petitiontype.ID = mainr_pattyp_ID
-        INNER JOIN status on status.stat_ID = maintenancerequests.mainr_Stat_ID
+        INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
         INNER JOIN room on room.room_ID = renting.renting_room_ID
     WHERE
-      maintenancerequests.mainr_Stat_ID = "STA000011"
+      maintenancerequests.mainr_Stat_ID = "STC000001"
     ORDER BY
       maintenancerequests.mainr_ID ASC
     `;
-    //STA000011 = รอนิติบุคคลตรวจสอบ
+    //STC000001 = รอนิติบุคคลตรวจสอบ
 
     const [result] = await db.promise().query(query);
     if (result.length === 0) {
@@ -52,8 +52,79 @@ const getReq = async (req, res) => {
   }
 };
 
+const getReqhistory = async (req, res) => {
+  try {
+    const query = `
+        SELECT
+        mainr_ID,
+        CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
+        room.room_Number AS roomNumber,
+        mainr_ProblemTitle,
+        mainr_ProblemDescription,
+        mainr_Date,
+        petitiontype.Type AS Type,
+        stacase.StaCase_Name AS status,
+        maintenancerequests.mainr_SuccessDate AS SuccessDate
+      FROM 
+        maintenancerequests
+          INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
+          INNER JOIN users on users.user_ID = renting.renting_user_ID
+          INNER JOIN petitiontype on petitiontype.ID = mainr_pattyp_ID
+          INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
+          INNER JOIN room on room.room_ID = renting.renting_room_ID
+      WHERE
+        maintenancerequests.mainr_Stat_ID = "STC000006"
+        OR maintenancerequests.mainr_Stat_ID = "STC000007"
+        OR maintenancerequests.mainr_Stat_ID = "STC000008"
+      ORDER BY
+        maintenancerequests.mainr_ID ASC
+    `;
+    //STC000007 = ยกเลิกการแจ้งซ่อม
+    //STC000006 = เสร็จสิ้น
+    //STC000008 = เจ้าหน้าที่ปฎิเสธคำร้อง
+
+    const [result] = await db.promise().query(query);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: "ไม่พบข้อมูลการแจ้งซ่อม" });
+    }
+
+    const formattedResult = result.map((item) => ({
+      ...item,
+      mainr_Date:
+        new Date(item.mainr_Date).toLocaleDateString("th-TH", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }) +
+        " " +
+        new Date(item.mainr_Date).toLocaleTimeString("th-TH", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      SuccessDate: item.SuccessDate
+        ? new Date(item.SuccessDate).toLocaleDateString("th-TH", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }) +
+          " " +
+          new Date(item.SuccessDate).toLocaleTimeString("th-TH", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : null,
+    }));
+
+    res.status(200).json(formattedResult);
+  } catch (err) {
+    console.error("เกิดข้อผิดพลาด:", err);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+  }
+};
+
 const denyReq = async (req, res) => {
-  const { mainr_ID, mainrstatus_ID = "STA000018" } = req.body; //STA000018 = เจ้าหน้าที่ปฎิเสธคำร้อง
+  const { mainr_ID, mainrstatus_ID = "STC000008" } = req.body; //STC000008 = เจ้าหน้าที่ปฎิเสธคำร้อง
 
   try {
     if (!mainr_ID) {
@@ -76,7 +147,7 @@ const denyReq = async (req, res) => {
 };
 
 const sendtomacReq = async (req, res) => {
-  const { mainr_ID, mainrstatus_ID = "STA000012" } = req.body; //STA000012 = รอเจ้าหน้าที่ซ่อมบำรุงตรวจสอบ
+  const { mainr_ID, mainrstatus_ID = "STC000002" } = req.body; //STC000002 = รอเจ้าหน้าที่ซ่อมบำรุงตรวจสอบ
 
   try {
     if (!mainr_ID) {
@@ -108,22 +179,21 @@ const getMacReq = async (req, res) => {
         mainr_ProblemDescription,
         mainr_Date,
         petitiontype.Type AS Type,
-        status.stat_Name AS status
+        stacase.StaCase_Name AS status
       FROM 
         maintenancerequests
         INNER JOIN renting ON renting.renting_ID = maintenancerequests.mainr_renting_ID
         INNER JOIN users ON users.user_ID = renting.renting_user_ID
         INNER JOIN petitiontype ON petitiontype.ID = mainr_pattyp_ID
-        INNER JOIN status ON status.stat_ID = maintenancerequests.mainr_Stat_ID
+        INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
         INNER JOIN room ON room.room_ID = renting.renting_room_ID
-        LEFT JOIN assessproblem ON assessproblem.asp_mainr_ID = maintenancerequests.mainr_ID
       WHERE
-        maintenancerequests.mainr_Stat_ID = "STA000012"
-        AND assessproblem.asp_mainr_ID IS NULL
+        maintenancerequests.mainr_Stat_ID = "STC000002"
+        AND asp_detail = ""
       ORDER BY
         maintenancerequests.mainr_ID ASC
     `;
-    //STA000012 = รอเจ้าหน้าที่ซ่อมบำรุงตรวจสอบ
+    //STC000002 = รอเจ้าหน้าที่ซ่อมบำรุงตรวจสอบ
 
     const [result] = await db.promise().query(query);
     if (result.length === 0) {
@@ -168,18 +238,17 @@ const getMacReqById = async (req, res) => {
       mainr_ProblemDescription,
       mainr_Date,
       petitiontype.Type AS Type,
-      status.stat_Name AS status,
-      assessproblem.asp_detail AS detail
+      stacase.StaCase_Name AS status,
+      maintenancerequests.asp_detail AS detail
     FROM 
       maintenancerequests
         INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
         INNER JOIN users on users.user_ID = renting.renting_user_ID
         INNER JOIN petitiontype on petitiontype.ID = mainr_pattyp_ID
-        INNER JOIN status on status.stat_ID = maintenancerequests.mainr_Stat_ID
+        INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
         INNER JOIN room on room.room_ID = renting.renting_room_ID
-        INNER JOIN assessproblem ON assessproblem.asp_mainr_ID = maintenancerequests.mainr_ID
     WHERE
-      maintenancerequests.mainr_Stat_ID = "STA000012"
+      maintenancerequests.mainr_Stat_ID = "STC000002"
     ORDER BY
       maintenancerequests.mainr_ID ASC
     `;
@@ -215,14 +284,14 @@ const getMacReqById = async (req, res) => {
 const sendAssessProblemReq = async (req, res) => {
   const { mainr_ID, assessProblemText, userID } = req.body;
   try {
-    const insertQuery = `
-            INSERT INTO assessproblem
-            (asp_mainr_ID, asp_detail, asp_user_id)
-            VALUES (?, ?, ?)
+    const updateQuery = `
+    UPDATE maintenancerequests
+            SET  asp_detail = ?
+            WHERE mainr_ID  = ?
         `;
     await db
       .promise()
-      .query(insertQuery, [mainr_ID, assessProblemText, userID]);
+      .query(updateQuery, [assessProblemText,mainr_ID]);
 
     res.status(201).json({ message: "ส่งประเมิณปัญหาเรียบร้อยแล้ว!" });
   } catch (err) {
@@ -302,7 +371,7 @@ const submitRequisition = async (req, res) => {
       reqDate,
       requisition_mainr_ID,
       requisition_user_ID,
-      "STA000020", // สถานะเริ่มต้น "ยังไม่เบิก"
+      "SRQ000002", // สถานะเริ่มต้น "ยังไม่เบิก"
     ]);
 
 
@@ -319,9 +388,9 @@ const submitRequisition = async (req, res) => {
       // ตรวจสอบว่ามีรายการสั่งเพิ่มหรือไม่
       let statID;
       if (quantity_orders && quantity_orders > 0) {
-        statID = "STA000022"; // ถ้ามี quantity_orders มากกว่า 0 เปลี่ยนเป็น "รอสั่งซื้อ"
+        statID = "SOD000001"; // ถ้ามี quantity_orders มากกว่า 0 เปลี่ยนเป็น "รอสั่งซื้อ"
       } else {
-        statID = "STA000019"; // ถ้าไม่มีสั่งเพิ่มให้สถานะเป็น "รอเบิก"
+        statID = "SRQ000001"; // ถ้าไม่มีสั่งเพิ่มให้สถานะเป็น "รอเบิก"
       }
 
       await db.promise().query(insertReqlistQuery, [
@@ -338,7 +407,7 @@ const submitRequisition = async (req, res) => {
       WHERE mainr_ID = ?
     `;
 
-      await db.promise().query(updateQuery, [ "STA000023", requisition_mainr_ID]);
+      await db.promise().query(updateQuery, [ "STC000009", requisition_mainr_ID]);
     }
     //STA000023 = กำลังดำเนินการตรวจสอบ
 
@@ -367,7 +436,7 @@ const getSuccessReq = async (req, res) => {
     maintenancerequests.mainr_ProblemDescription,
     maintenancerequests.mainr_Date,
     petitiontype.Type AS Type,
-    status.stat_Name AS status,
+    stacase.StaCase_Name AS status,
     CONCAT(
         MIN(schedulerepairs.Date), ' ', 
         MIN(schedulerepairs.startTime), ' - ', 
@@ -381,21 +450,20 @@ FROM
     INNER JOIN renting ON renting.renting_ID = maintenancerequests.mainr_renting_ID
     INNER JOIN users ON users.user_ID = renting.renting_user_ID
     INNER JOIN petitiontype ON petitiontype.ID = maintenancerequests.mainr_pattyp_ID
-    INNER JOIN status ON status.stat_ID = maintenancerequests.mainr_Stat_ID
+    INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
     INNER JOIN room ON room.room_ID = renting.renting_room_ID
     LEFT JOIN schedulerepairs ON schedulerepairs.sdr_mainr_ID = maintenancerequests.mainr_ID
     LEFT JOIN scheculerepairsn_list ON scheculerepairsn_list.srl_sdr_ID = schedulerepairs.ID
 WHERE
-    scheculerepairsn_list.srl_user_ID = ? 
-    AND maintenancerequests.mainr_Stat_ID IN ('STA000014', 'STA000015')
+    scheculerepairsn_list.srl_user_ID = ?
+    AND maintenancerequests.mainr_Stat_ID IN ('STC000004', 'STC000005')
 GROUP BY
     maintenancerequests.mainr_ID
 ORDER BY
     maintenancerequests.mainr_ID ASC;
-
     `;
-    //STA000014 = รอซ่อม
-    //STA000015 = กำลังดำเนินการซ่อม
+    //STC000004 = รอซ่อม
+    //STC000005 = กำลังดำเนินการซ่อม
 
 
     const [result] = await db.promise().query(query, [userId]);
@@ -427,10 +495,10 @@ ORDER BY
 
 const getStatusReq = async (req, res) => {
   try {
-    const query = `SELECT * FROM status 
-    WHERE stat_ID = "STA000014"
-    OR stat_ID = "STA000015"
-    OR stat_ID = "STA000016"
+    const query = `SELECT * FROM stacase
+    WHERE StaCase_ID = "STC000004"
+    OR StaCase_ID = "STC000005"
+    OR StaCase_ID = "STC000006"
     `;
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
@@ -439,9 +507,9 @@ const getStatusReq = async (req, res) => {
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
   }
 };
-    //STA000014 = รอซ่อม
-    //STA000015 = กำลังดำเนินการซ่อม
-    //STA000016 = เสร็จสิ้น
+    //STC000004 = รอซ่อม
+    //STC000005 = กำลังดำเนินการซ่อม
+    //STC000006 = เสร็จสิ้น
 
 const updateStatusReq = async (req, res) => {
   const { mainr_ID, mainrstatus_ID } = req.body;
@@ -459,7 +527,7 @@ const updateStatusReq = async (req, res) => {
 
     const queryParams = [mainrstatus_ID, mainr_ID];
 
-    if (mainrstatus_ID === "STA000016") {
+    if (mainrstatus_ID === "STC000006") {
       updateQuery = `
         UPDATE maintenancerequests 
         SET mainr_Stat_ID = ?, mainr_SuccessDate = NOW()
@@ -482,6 +550,7 @@ const updateStatusReq = async (req, res) => {
 
 module.exports = {
   getReq,
+  getReqhistory,
   denyReq,
   sendtomacReq,
   getMacReq,

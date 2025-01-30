@@ -830,10 +830,10 @@
                             <option value="">กรุณาเลือกสถานะ</option>
                             <option
                               v-for="status in statusUser"
-                              :key="status.stat_ID"
-                              :value="status.stat_ID"
+                              :key="status.StaCase_ID"
+                              :value="status.StaCase_ID"
                             >
-                              {{ status.stat_Name }}
+                              {{ status.StaCase_Name }}
                             </option>
                           </CFormSelect>
                         </CCol>
@@ -1428,8 +1428,6 @@ export default {
 
     const assessProblemReqTab2 = async (selectedUser) => {};
     const assessProblemReqTab3 = async (selectedUser) => {};
-
-    
 
     onMounted(() => {
       fetchRequestsTab1();

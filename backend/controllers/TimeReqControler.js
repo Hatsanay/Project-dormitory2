@@ -17,7 +17,7 @@ const getreqtime = async (req, res) => {
     FROM  
       schedulerepairs
       INNER JOIN maintenancerequests on maintenancerequests.mainr_ID = schedulerepairs.sdr_mainr_ID
-      INNER JOIN status ms on ms.stat_ID = maintenancerequests.mainr_Stat_ID
+      INNER JOIN stacase ms on ms.StaCase_ID = maintenancerequests.mainr_Stat_ID
       INNER JOIN requisition on requisition.requisition_mainr_ID = maintenancerequests.mainr_ID
       INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
       INNER JOIN room on room.room_ID = renting.renting_room_ID
@@ -64,7 +64,7 @@ const getMacForShc = async (req, res) => {
     users
   WHERE
     user_Role_ID = "ROL000003"
-      AND user_Status_ID = "STA000003"`;
+      AND user_Status_ID = "STU000001"`;
 
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
@@ -87,16 +87,16 @@ const getReqwaitForShc = async (req, res) => {
       mainr_ProblemDescription,
       mainr_Date,
       petitiontype.Type AS Type,
-      status.stat_Name AS status
+      stacase.StaCase_Name AS status
     FROM 
       maintenancerequests
         INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
         INNER JOIN users on users.user_ID = renting.renting_user_ID
         INNER JOIN petitiontype on petitiontype.ID = mainr_pattyp_ID
-        INNER JOIN status on status.stat_ID = maintenancerequests.mainr_Stat_ID
+        INNER JOIN stacase on stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
         INNER JOIN room on room.room_ID = renting.renting_room_ID
     WHERE
-        maintenancerequests.mainr_Stat_ID = "STA000013"
+        maintenancerequests.mainr_Stat_ID = "STC000003"
     ORDER BY
       maintenancerequests.mainr_ID ASC
     `;
@@ -188,11 +188,11 @@ const assignWork = async (req, res) => {
 
     const updateStatusQuery = `
       UPDATE maintenancerequests
-      SET mainr_Stat_ID = 'STA000014'
+      SET mainr_Stat_ID = 'STC000004'
       WHERE mainr_ID = ?
     `;
     await db.promise().query(updateStatusQuery, [repairID]);
-    //STA000014 = รอซ่อม
+    //STC000004 = รอซ่อม
     res.status(201).json({ message: "การมอบหมายงานสำเร็จ" });
   } catch (err) {
     console.error("เกิดข้อผิดพลาด:", err);

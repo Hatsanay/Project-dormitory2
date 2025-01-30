@@ -22,10 +22,10 @@
                       <option value="">กรุณาเลือกสถานะ</option>
                       <option
                         v-for="sta in status"
-                        :key="sta.stat_ID"
-                        :value="String(sta.stat_ID)"
+                        :key="sta.StaUse_ID"
+                        :value="String(sta.StaUse_ID)"
                       >
-                        {{ sta.stat_Name }}
+                        {{ sta.StaUse_Name }}
                       </option>
                     </CFormSelect>
                   </CCol>

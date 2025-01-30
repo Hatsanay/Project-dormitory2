@@ -22,10 +22,10 @@
                       <option value="">กรุณาเลือกสถานะ</option>
                       <option
                         v-for="sta in status"
-                        :key="sta.stat_ID"
-                        :value="String(sta.stat_ID)"
+                        :key="sta.staren_ID"
+                        :value="String(sta.staren_ID)"
                       >
-                        {{ sta.stat_Name }}
+                        {{ sta.staren_name }}
                       </option>
                     </CFormSelect>
                   </CCol>
@@ -38,7 +38,6 @@
       </CCol>
     </CRow>
 
-    <!-- Notifications -->
     <CToaster class="p-3" placement="top-end">
       <CToast v-for="(toast, index) in toasts" :key="index" visible>
         <CToastHeader closeButton>
@@ -62,6 +61,7 @@ export default {
       required: true,
     },
   },
+
   setup(props) {
     const renting_ID = ref(props.selectedRenting?.renting_ID || "");
     const rentingStatus = ref(props.selectedRenting?.renting_stat_ID || "");
@@ -101,16 +101,13 @@ export default {
           statusID: rentingStatus.value,
         };
 
-        // If the status is "STA000010", update room status as well
-        if (rentingStatus.value === "STA000010") {
+        if (rentingStatus.value === "SRT000002") {
           const roomPayload = {
             roomID: roomID.value,
           };
           await axios.put("/api/auth/updateRoomStatusCancelRenting", roomPayload);
         }
-
         await axios.put("/api/auth/updateStatusRenting", payload);
-
         toasts.value.push({
           title: "สำเร็จ",
           content: "ข้อมูลสถานะการเช่าถูกอัปเดตเรียบร้อยแล้ว",

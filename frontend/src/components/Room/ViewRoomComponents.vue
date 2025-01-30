@@ -53,7 +53,6 @@
                 <tr v-for="item in paginatedItems" :key="item.room_ID">
                   <td>{{ item.room_ID }}</td>
                   <td>{{ item.room }}</td>
-                  <td>{{ item.roomType_name }}</td>
                   <td>{{ item.room_stat_Name }}</td>
                   <td>{{ item.room_status_Name }}</td>
                   <td>
@@ -164,7 +163,6 @@ export default {
     const columns = ref([
       { key: "room_ID", label: "รหัส" },
       { key: "room_Number", label: "เลขห้อง" },
-      { key: "room_Type", label: "ประเภทห้อง" },
       { key: "stat_Name", label: "สถานะห้อง" },
       { key: "status", label: "สถานะ" },
     ]);
@@ -210,7 +208,7 @@ export default {
     const filterItems = () => {
       filteredItems.value = room.value
         .filter((item) => {
-          const matchesClass = selectedStatus.value ? item.stat_Name === selectedStatus.value : true;
+          const matchesClass = selectedStatus.value ? item.room_stat_Name === selectedStatus.value : true;
           const matchesSearch =
             item.room_ID?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             item.room_Number?.toLowerCase().includes(searchQuery.value.toLowerCase());

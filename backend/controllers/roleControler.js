@@ -6,29 +6,11 @@ require('dotenv').config();
 ////////////////////////////
 const registerRole = async (req, res) => {
   const { role_Name ,permission_name} = req.body;
-
   try {
-    const query = "SELECT permission_ID FROM permissions ORDER BY permission_ID DESC LIMIT 1";
-    const [result] = await db.promise().query(query);
-    let maxId;
-    if (result.length === 0) {
-      maxId = 0;
-    } else {
-      const lastPermissionId = result[0].permission_ID;
-      maxId = parseInt(lastPermissionId.slice(-6)) || 0;
-    }
-    const num = maxId + 1;
-    const newPermissionID = "PER" + String(num).padStart(6, "0");
     const roleChecked = await checkRole(role_Name);
     if (roleChecked) {
       return res.status(400).json({ error: "มีชื่อบทบาทนี้อยู่แล้ว" });
     }
-    const insertQuery = `
-      INSERT INTO permissions
-      (permission_ID, permission_name)
-      VALUES (?, ?)
-    `;
-    await db.promise().query(insertQuery, [newPermissionID, permission_name]);
     const query2 = "SELECT role_ID FROM roles ORDER BY role_ID DESC LIMIT 1";
     const [result2] = await db.promise().query(query2);
     let maxId2;
@@ -40,15 +22,13 @@ const registerRole = async (req, res) => {
     }
     const num2 = maxId2 + 1;
     const newRoleID = "ROL" + String(num2).padStart(6, "0");
-
-
-    const role_Status_ID = "STA000006"
+    const role_Status_ID = "SUS000001"
     const insertQuery2 = `
       INSERT INTO roles
       (role_ID, role_Name, role_permissions, role_Status_ID)
       VALUES (?, ?, ?, ?)
     `;
-    await db.promise().query(insertQuery2, [newRoleID, role_Name, newPermissionID, role_Status_ID]);
+    await db.promise().query(insertQuery2, [newRoleID, role_Name, permission_name, role_Status_ID]);
 
     res.status(201).json({ message: "ลงทะเบียนบทบาทสำเร็จแล้ว!" });
   } catch (err) {
@@ -89,24 +69,24 @@ const getAutoRoleID = async (req, res) => {
   }
 };
 
-const getAutoPermissionID = async (req, res) => {
-  try {
-    const query = "SELECT permission_ID FROM permissions ORDER BY permission_ID DESC LIMIT 1";
-    const [result] = await db.promise().query(query);
-    let maxId;
-    if (result.length === 0) {
-      maxId = 0;
-    } else {
-      const lastPermissionId = result[0].permission_ID;
-      maxId = parseInt(lastPermissionId.slice(-6)) || 0;
-    }
-    const permissionID = "PER" + String(maxId + 1).padStart(6, "0");
-    res.status(200).json(permissionID);
-  } catch (err) {
-    console.error("เกิดข้อผิดพลาด:", err);
-    res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
-  }
-};
+// const getAutoPermissionID = async (req, res) => {
+//   try {
+//     const query = "SELECT permission_ID FROM permissions ORDER BY permission_ID DESC LIMIT 1";
+//     const [result] = await db.promise().query(query);
+//     let maxId;
+//     if (result.length === 0) {
+//       maxId = 0;
+//     } else {
+//       const lastPermissionId = result[0].permission_ID;
+//       maxId = parseInt(lastPermissionId.slice(-6)) || 0;
+//     }
+//     const permissionID = "PER" + String(maxId + 1).padStart(6, "0");
+//     res.status(200).json(permissionID);
+//   } catch (err) {
+//     console.error("เกิดข้อผิดพลาด:", err);
+//     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+//   }
+// };
 
 
 const getRoleByID = async (req, res) => {
@@ -119,11 +99,9 @@ const getRoleByID = async (req, res) => {
   SELECT 
     role_ID,
     role_Name,
-    role_permissions,
-    permission_name,
+    role_permissions as permission_name,
     role_Status_ID
   FROM roles
-  INNER JOIN permissions ON permissions.permission_id = roles.role_permissions
     WHERE role_ID = ?
     `;
     const [result] = await db.promise().query(query, [roleID]);
@@ -144,7 +122,7 @@ const getRolesForView = async (req, res) => {
   SELECT 
 	role_ID,
     role_Name,
-    role_permissions,
+    role_permissions as permission_name,
     stause.StaUse_Name as stat_Name,
     role_Status_ID
   FROM roles
@@ -164,43 +142,28 @@ const getRolesForView = async (req, res) => {
 ///////////////////////////////
 const updateRole = async (req, res) => {
   const role_ID = req.query.role_ID;
-  const permission_id = req.query.permission_ID;
   const { role_name, permission_name,  } = req.body;
-
   try {
-
-    if (!permission_id) {
-    }
-    const [permissionCheck] = await db.promise().query("SELECT * FROM permissions WHERE permission_id = ?", [permission_id]);
-    if (permissionCheck.length === 0) {
-    }
-
-    const updateQuery1 = `
-      UPDATE permissions SET
-        permission_name = ?
-      WHERE permission_id = ?
-    `;
-    await db.promise().query(updateQuery1, [permission_name, permission_id]);
     const [roleCheck] = await db.promise().query("SELECT * FROM roles WHERE role_ID = ?", [role_ID]);
     if (roleCheck.length === 0) {
       return res.status(404).json({ error: "ไม่พบข้อมูลบทบาท (Role)" });
     }
-
     const updateQuery = `
       UPDATE roles SET
-        role_name = ?
+        role_name = ?,
+        role_permissions = ?
       WHERE role_ID = ?
     `;
     await db.promise().query(updateQuery, [
-      role_name ,role_ID 
+      role_name ,permission_name,role_ID 
     ]);
-
     res.status(200).json({ message: "อัปเดตข้อมูลบทบาทเรียบร้อยแล้ว" });
   } catch (err) {
     console.error("เกิดข้อผิดพลาด:", err);
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
   }
 };
+
 const updateStatusRole = async (req, res) => {
   const { role_ID, role_stat_ID } = req.body; 
   try {
@@ -224,7 +187,7 @@ const updateStatusRole = async (req, res) => {
 
 const getDeletableRole = async (req, res) => {
   try {
-    const query = 'SELECT * FROM status WHERE stat_StatTypID = "STT000002"'; 
+    const query = 'SELECT * FROM stause '; 
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
   } catch (err) {
@@ -240,7 +203,6 @@ module.exports = {
   getRoleByID, 
   getAutoRoleID,
   updateRole,
-  getAutoPermissionID,
   getDeletableRole,
   updateStatusRole
 };

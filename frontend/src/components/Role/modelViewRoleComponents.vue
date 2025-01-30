@@ -28,10 +28,7 @@
                 </CRow>
               </CCol>
               <CRow class="mb-3">
-                <CCol md="3">
-                  <CFormLabel for="permission_ID">รหัสสิทธิ์</CFormLabel>
-                  <CFormInput v-model="permission_ID" type="text" id="permission_ID" disabled />
-                </CCol>
+                
                 <CCol md="12">
                   <CFormLabel>กำหนดสิทธิ์:</CFormLabel>
                   <CRow>

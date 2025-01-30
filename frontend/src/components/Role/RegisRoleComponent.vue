@@ -27,13 +27,11 @@
                     </CFormFeedback>
                   </CCol>
                 </CRow>
-
-                
                 <CRow class="mb-3">
-                  <CCol md="2">
+                  <!-- <CCol md="2">
                     <CFormLabel for="permission_name">รหัสบทบาท</CFormLabel>
                     <CFormInput v-model="autoIDPEr" type="text" id="permission_name" disabled />
-                  </CCol>
+                  </CCol> -->
                   <CCol md="12">
                     <CFormLabel>กำหนดสิทธิ์:</CFormLabel>
                     <CRow>
@@ -176,17 +174,6 @@ export default {
       }
     };
 
-    const fetchAutoIDPer = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("/api/auth/getAutoPermissionID", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        autoIDPEr.value = response.data;
-      } catch (error) {
-        handleFetchError(error, "ดึงข้อมูล ID เกิดข้อผิดพลาด:");
-      }
-    };
 
     const handleFetchError = (error, defaultMessage) => {
       let errorMessage = defaultMessage;
@@ -199,7 +186,6 @@ export default {
 
     onMounted(() => {
       fetchAutoID();
-      fetchAutoIDPer();
       updatePermissions(); 
     });
 

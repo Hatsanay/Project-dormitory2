@@ -32,20 +32,12 @@
                 </CRow>
                 <CRow class="mb-3">
                   <CCol md="3">
-                    <CFormLabel for="type">ประเภทห้อง</CFormLabel>
-                    <CFormInput v-model="type" type="text" id="type" disabled />
-                  </CCol>
-                  <CCol md="3">
                     <CFormLabel for="statroom">สถานะห้อง</CFormLabel>
                     <CFormInput v-model="statroom" type="text" id="statroom" disabled />
                   </CCol>
                   <CCol md="3">
-                    <CFormLabel for="status">สถานะการจอง</CFormLabel>
+                    <CFormLabel for="status">สถานะ</CFormLabel>
                     <CFormInput v-model="status" type="text" id="status" disabled />
-                  </CCol>
-                  <CCol md="3"v-if="room_Type === 'RTY000001'" required>
-                    <CFormLabel for="Air">เครื่องปรับอากาศ</CFormLabel>
-                    <CFormInput v-model="Air" type="text" id="Air" disabled />
                   </CCol>
                 </CRow>
               </CCol>

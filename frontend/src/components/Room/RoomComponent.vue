@@ -15,13 +15,9 @@
                   </CCol>
                   <CCol md="2">
                     <CFormLabel for="roomfloor">ชั้นห้องพัก</CFormLabel>
-                    <CFormSelect v-model="roomfloor" id="roomfloor" 
-                    required
-                    :class="{ 'is-invalid': isfloorInvalid }">
+                    <CFormSelect v-model="roomfloor" id="roomfloor" required :class="{ 'is-invalid': isfloorInvalid }">
                       <option value>กรุณาเลือกชั้นห้องพัก</option>
-                      <option v-for="floor in floors" 
-                      :key="floor.floor_ID" 
-                      :value="floor.floor_ID">
+                      <option v-for="floor in floors" :key="floor.floor_ID" :value="floor.floor_ID">
                         {{ floor.floor_name }}
                       </option>
                     </CFormSelect>
@@ -39,40 +35,6 @@
                     <CFormFeedback invalid>
                       {{ RoomErrorMessage }}
                     </CFormFeedback>
-                  </CCol>
-                  <CCol md="3">
-                    <CFormLabel for="roomtype">ประเภท</CFormLabel>
-                    <CFormSelect
-                      v-model="roomtype"
-                      id="roomtype"
-                      required
-                      :class="{ 'is-invalid': isTypeInvalid }"
-                    >
-                      <option value="">กรุณาเลือกประเภท</option>
-                      <option
-                        v-for="type in types"
-                        :key="type.roomType_ID"
-                        :value="type.roomType_ID"
-                      >
-                        {{ type.roomType_name }}
-                      </option>
-                    </CFormSelect>
-                    <CFormFeedback invalid>{{ typeErrorMessage }}</CFormFeedback>
-                  </CCol>
-                  <CCol md="2" v-if="roomtype === 'RTY000001'">
-                    <CFormLabel for="selectAir">เครื่องแอร์</CFormLabel>
-                    <CFormSelect
-                      v-model="selectAir"
-                      id="selectAir"
-                      required
-                      :class="{ 'is-invalid': isAirInvalid }"
-                    >
-                      <option value="">กรุณาเลือกเครื่องแอร์</option>
-                      <option v-for="air in Airs" :key="air.air_ID" :value="air.air_ID">
-                        {{ air.BrandModel }}
-                      </option>
-                    </CFormSelect>
-                    <CFormFeedback invalid>{{ AirErrorMessage }}</CFormFeedback>
                   </CCol>
                 </CRow>
                 <CFormInput v-if="visable" v-model="token" type="text" id="token" />
@@ -98,7 +60,6 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import '@vuepic/vue-datepicker/dist/main.css'
 
 export default {
   name: 'RoomComponent',
@@ -107,32 +68,15 @@ export default {
     const resRoom_Number = ref('')
     const validatedTooltip01 = ref(false)
     const toasts = ref([])
-    const roomtype = ref('')
     const roomfloor = ref('')
-    const selectAir = ref('')
     const floors = ref([])
-    const types = ref([])
-    const Airs = ref([])
 
     const isRoomInvalid = computed(() => {
-      return (
-        validatedTooltip01.value &&
-        (resRoom_Number.value.trim() === '' || !/^\d{2}$/.test(resRoom_Number.value))
-      )
+      return validatedTooltip01.value && (resRoom_Number.value.trim() === '' || !/^\d{2}$/.test(resRoom_Number.value))
     })
 
     const isfloorInvalid = computed(() => {
-  return validatedTooltip01.value && (roomfloor.value === '' || roomfloor.value == null)
-})
-
-
-
-    const isTypeInvalid = computed(() => {
-      return validatedTooltip01.value && roomtype.value === ''
-    })
-
-    const isAirInvalid = computed(() => {
-      return validatedTooltip01.value && roomtype.value === 'RTY000001' && selectAir.value === ''
+      return validatedTooltip01.value && (roomfloor.value === '' || roomfloor.value == null)
     })
 
     const RoomErrorMessage = computed(() => {
@@ -146,28 +90,22 @@ export default {
 
     const FloorErrorMessage = computed(() => 'กรุณาเลือกชั้นห้องพัก')
 
-    const typeErrorMessage = computed(() => 'กรุณาเลือกประเภท')
-
-    const AirErrorMessage = computed(() => 'กรุณาเลือกเครื่องแอร์')
-
     const handleSubmitTooltip01 = (event) => {
-  validatedTooltip01.value = true
+      validatedTooltip01.value = true
 
-  if (isRoomInvalid.value || isTypeInvalid.value || isAirInvalid.value || isfloorInvalid.value) {
-    event.preventDefault()
-    event.stopPropagation()
-  } else {
-    handleSubmit()
-  }
-}
+      if (isRoomInvalid.value || isfloorInvalid.value) {
+        event.preventDefault()
+        event.stopPropagation()
+      } else {
+        handleSubmit()
+      }
+    }
 
     const handleSubmit = async () => {
       try {
         const response = await axios.post('/api/auth/registerRoom', {
           roomnumber: resRoom_Number.value,
-          roomtype: roomtype.value,
           roomfloor: roomfloor.value,
-          Air: roomtype.value === 'RTY000001' ? selectAir.value : null,
         })
         createToast('Success', response.data.message)
         setTimeout(() => {
@@ -182,6 +120,7 @@ export default {
         console.error('Error:', error)
       }
     }
+
     const createToast = (title, content) => {
       toasts.value.push({ title, content })
       setTimeout(() => {
@@ -213,58 +152,23 @@ export default {
       }
     }
 
-    const fetchRoomtype = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        const response = await axios.get('/api/auth/getRoomType', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        types.value = response.data
-      } catch (error) {
-        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลประเภทห้อง:', error)
-      }
-    }
-
-    const fetchAir = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        const response = await axios.get('/api/auth/getAirconditioner', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        Airs.value = response.data
-      } catch (error) {
-        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลเครื่องแอร์:', error)
-      }
-    }
-
     onMounted(() => {
       fetchAutoID()
       fetchFloor()
-      fetchRoomtype()
-      fetchAir()
     })
 
     return {
       autoID,
       resRoom_Number,
-      roomtype,
       validatedTooltip01,
       handleSubmitTooltip01,
       isRoomInvalid,
-      isTypeInvalid,
-      isAirInvalid,
       isfloorInvalid,
       RoomErrorMessage,
       toasts,
       roomfloor,
-      types,
       floors,
-      Airs,
-      selectAir,
-      AirErrorMessage,
-      typeErrorMessage,
       FloorErrorMessage,
-      
     }
   },
 }

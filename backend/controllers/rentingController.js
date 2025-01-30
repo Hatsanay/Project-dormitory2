@@ -19,7 +19,7 @@ const registerRenting = async (req, res) => {
     }
     const num = maxId + 1;
     const newRentingID = "REN" + String(num).padStart(6, "0");
-    const renting_stat_ID = "STR000001"
+    const renting_stat_ID = "SRT000001"
     const insertQuery = `
       INSERT INTO renting
       ( renting_ID, renting_user_ID,renting_room_ID,renting_stat_ID)
@@ -132,7 +132,7 @@ const getUserForRenting = async (req, res) => {
       CONCAT(users.user_Fname,' ', users.user_Lname) AS userName
     FROM 
       users
-    WHERE user_status_ID = "STA000003"
+    WHERE user_status_ID = "STU000001" 
     `;
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
@@ -149,7 +149,7 @@ const getRoomForRenting = async (req, res) => {
       room_Number
     FROM
       room
-    WHERE room_Status_ID = "STA000006" and room_stat_ID = "STA000007"
+    WHERE room_Status_ID = "SUS000001" and room_stat_ID = "STR000001";
     `;
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
@@ -159,11 +159,9 @@ const getRoomForRenting = async (req, res) => {
   }
 };
 
-
-
 const updateRoomStatusRenting = async (req, res) => {
   const { roomID } = req.body;
-  const room_stat_ID = "STA000008";
+  const room_stat_ID = "STR000002";
   try {
     if (!roomID) {
       return res.status(400).json({ error: "กรุณาระบุ roomID " });
@@ -184,7 +182,7 @@ const updateRoomStatusRenting = async (req, res) => {
 
 const updateRoomStatusCancelRenting = async (req, res) => {
   const { roomID } = req.body;
-  const room_stat_ID = "STA000007";
+  const room_stat_ID = "STR000001";
   try {
     if (!roomID) {
       return res.status(400).json({ error: "กรุณาระบุ roomID " });
@@ -203,8 +201,6 @@ const updateRoomStatusCancelRenting = async (req, res) => {
   }
 };
 
-
-// ฟังก์ชันสำหรับอัปเดตสถานะหน่วย
 const updateStatusRenting = async (req, res) => {
   const { ID, statusID } = req.body; 
   try {
@@ -225,9 +221,10 @@ const updateStatusRenting = async (req, res) => {
   }
 };
 
+
 const getDeletableRenting = async (req, res) => {
   try {
-    const query = 'SELECT * FROM status WHERE stat_StatTypID = "STT000004"'; 
+    const query = 'SELECT * FROM starenting'; 
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
   } catch (err) {

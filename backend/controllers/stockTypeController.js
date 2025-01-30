@@ -179,7 +179,7 @@ const updateStatusTypeStock = async (req, res) => {
 
 const getDeletableTypeStock = async (req, res) => {
   try {
-    const query = 'SELECT * FROM status WHERE stat_StatTypID = "SUS000002"'; 
+    const query = 'SELECT * FROM stause '; 
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
   } catch (err) {

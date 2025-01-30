@@ -132,7 +132,6 @@ const {
   getRoleByID,
   getAutoRoleID,
   updateRole,
-  getAutoPermissionID,
   getDeletableRole,
   updateStatusRole
 } = require("../controllers/roleControler");
@@ -173,25 +172,25 @@ const {
 
 } = require("../controllers/floorController");
 
-const {
-  registerRoomType,
-  getRoomType,
-  getRoomTypeByID,
-  getAutotidRoomType,
-  updateRoomType,
-  updateStatusRoomType,
-  getDeletableRoomTypes
-} = require("../controllers/roomtypeController");
+// const {
+//   registerRoomType,
+//   getRoomType,
+//   getRoomTypeByID,
+//   getAutotidRoomType,
+//   updateRoomType,
+//   updateStatusRoomType,
+//   getDeletableRoomTypes
+// } = require("../controllers/roomtypeController");
 
-const {
-  registerAirconditioner,
-  getAirconditioner,
-  getAirconditionerByID,
-  getAutotidAirconditioner,
-  updateAirconditioner,
-  updateStatusAirconditioner,
-  getDeletableAirconditioners
-} = require("../controllers/AirController");
+// const {
+//   registerAirconditioner,
+//   getAirconditioner,
+//   getAirconditionerByID,
+//   getAutotidAirconditioner,
+//   updateAirconditioner,
+//   updateStatusAirconditioner,
+//   getDeletableAirconditioners
+// } = require("../controllers/AirController");
 
 
 // getUserByIdfromReq
@@ -317,7 +316,6 @@ router.get("/getDeletableStatus", authenticateToken, getDeletableStatus); //
 router.get("/getRolesForView", authenticateToken, getRolesForView); //
 router.get("/getRoleByID", authenticateToken, getRoleByID); //
 router.get("/getAutoRoleID", authenticateToken, getAutoRoleID); //
-router.get("/getAutoPermissionID", authenticateToken, getAutoPermissionID); //
 router.get("/getDeletableRole", authenticateToken, getDeletableRole); //
 
 router.get("/getRenting", authenticateToken, getRenting); //new
@@ -335,11 +333,11 @@ router.get("/getDeletablePetitionTypes", authenticateToken, getDeletablePetition
 router.get("/getFloor", authenticateToken, getFloor); //new
 router.get("/getFloorByID", authenticateToken, getFloorByID); //new
 
-router.get("/getRoomType", authenticateToken, getRoomType); //new
-router.get("/getRoomTypeByID", authenticateToken, getRoomTypeByID); //new
+// router.get("/getRoomType", authenticateToken, getRoomType); //new
+// router.get("/getRoomTypeByID", authenticateToken, getRoomTypeByID); //new
 
-router.get("/getAirconditioner", authenticateToken, getAirconditioner); //new
-router.get("/getAirconditionerByID", authenticateToken, getAirconditionerByID); //new
+// router.get("/getAirconditioner", authenticateToken, getAirconditioner); //new
+// router.get("/getAirconditionerByID", authenticateToken, getAirconditionerByID); //new
 
 
 router.put("/updateRoom", authenticateToken, updateRoom);
@@ -361,17 +359,17 @@ router.put(
   updateStatusTypeStatus
 ); //
 
-router.put("/updateStatus", authenticateToken, updateStatus); //
-router.put("/updateStatusSta", authenticateToken, updateStatusSta); //
+router.put("/updateStatus", authenticateToken, updateStatus); 
+router.put("/updateStatusSta", authenticateToken, updateStatusSta); 
 
-router.put("/updateRole", authenticateToken, updateRole); //
+router.put("/updateRole", authenticateToken, updateRole); 
 router.put("/updateStatusRole", authenticateToken, updateStatusRole);
 
-router.put("/updateRoomStatusRenting", authenticateToken, updateRoomStatusRenting);//new
-router.put("/updateRoomStatusCancelRenting", authenticateToken, updateRoomStatusCancelRenting);//new
-router.put("/updateStatusRenting", authenticateToken, updateStatusRenting);//new
+router.put("/updateRoomStatusRenting", authenticateToken, updateRoomStatusRenting);
+router.put("/updateRoomStatusCancelRenting", authenticateToken, updateRoomStatusCancelRenting);
+router.put("/updateStatusRenting", authenticateToken, updateStatusRenting);
 
-router.put("/updatePetitionType", authenticateToken, updatePetitionType);//new
-router.put("/updateStatusPetitionType", authenticateToken, updateStatusPetitionType);//new
+router.put("/updatePetitionType", authenticateToken, updatePetitionType);
+router.put("/updateStatusPetitionType", authenticateToken, updateStatusPetitionType);
 
 module.exports = router;

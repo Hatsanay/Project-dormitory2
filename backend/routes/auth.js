@@ -53,6 +53,8 @@ const {
   getSuccessReq,
   getStatusReq,
   updateStatusReq,
+  updateStatusNotsuccess,
+  updateStatusNotwith,
 } = require("../controllers/manageRequetsControler");
 const {
   getWithdrawReqlist,
@@ -260,6 +262,8 @@ router.put("/successReq", authenticateToken, successReq);
 router.put("/denyReq", authenticateToken, denyReq);
 router.put("/sendtomacReq", authenticateToken, sendtomacReq);
 router.put("/updateStatusReq", authenticateToken, updateStatusReq);
+router.put("/updateStatusNotsuccess", authenticateToken, updateStatusNotsuccess);
+router.put("/updateStatusNotwith", authenticateToken, updateStatusNotwith);
 
 router.put("/putReqWithdraw", authenticateToken, putReqWithdraw);
 router.put("/putAcceptWithdraw", authenticateToken, putAcceptWithdraw);

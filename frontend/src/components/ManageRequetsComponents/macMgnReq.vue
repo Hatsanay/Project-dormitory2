@@ -453,6 +453,9 @@
           <CModalFooter>
             <CButton color="secondary" @click="closeModelDetailRequestTab2">ปิด</CButton>
 
+            <CButton color="warning" @click="confirmUpdateNotwith()">
+              ไม่เบิกวัสดุ
+            </CButton>
             <CButton color="primary" @click="submitRequisition">
               บันทึกการแจ้งเบิก
             </CButton>
@@ -756,6 +759,8 @@
             <strong>รายละเอียด:</strong> {{ selectedUserTab3.mainr_ProblemDescription }}
           </p>
           <p><strong>ประเภท:</strong> {{ selectedUserTab3.Type }}</p>
+          <p><strong>เวลานัด:</strong> {{ selectedUserTab3.scheduleTime }}</p>
+          <!-- <p><strong>สถานะการเบิก:</strong> {{ selectedUserTab3.statusrequi }}</p> -->
           <p><strong>สถานะ:</strong> {{ selectedUserTab3.status }}</p>
 
           <div v-if="imageUrls.length > 0" class="mt-3">
@@ -781,6 +786,10 @@
 
         <CModalFooter>
           <CButton color="secondary" @click="closeModelDetailRequestTab3">ปิด</CButton>
+          <CButton color="warning" @click="confirmUpdateNotsuccess()">
+            <i class="fa-solid fa-paper-plane"></i>
+            การซ่อมไม่แล้วเสร็จ
+          </CButton>
           <CButton color="primary" @click="showStatusModal()">
             <i class="fa-solid fa-check"></i>
             ปรับสถานะ
@@ -961,6 +970,63 @@ export default {
       }
     };
 
+    const updateNotsuccess = async () => {
+      if (!selectedUserTab3.value.mainr_ID) {
+        console.error("mainr_ID is missing in selectedUserTab3:", selectedUserTab3.value);
+        Swal.fire({
+          icon: "error",
+          title: "ไม่สามารถปรับปรุงสถานะ",
+          text: "ข้อมูล mainr_ID ไม่ถูกต้อง",
+        });
+        return;
+      }
+
+      try {
+        const response = await axios.put(`/api/auth/updateStatusNotsuccess`, {
+          mainr_ID: selectedUserTab3.value.mainr_ID,
+        });
+
+        if (response.status === 200) {
+          Swal.fire({
+            icon: "success",
+            title: "เรียบร้อย",
+            text: "การซ่อมไม่แล้วเสร็จได้ถูกบันทึกแล้ว",
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถบันทึกได้",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating status:", error);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาดในการเรียกใช้ API",
+          text: "ไม่สามารถบันทึกได้",
+        });
+      }
+    };
+
+    const confirmUpdateNotsuccess = (index) => {
+      Swal.fire({
+        title: "คุณแน่ใจหรือไม่?",
+        text: "คุณต้องการเปลี่ยนการซ่อมไม่แล้วเสร็จหรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "ตกลง",
+        cancelButtonText: "ยกเลิก",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          updateNotsuccess();
+          window.location.reload();
+        }
+      });
+    };
+
     const filteredItemsTab1 = computed(() => {
       return itemsTab1.value.filter((item) => {
         return (
@@ -993,6 +1059,7 @@ export default {
           item.mainr_ID.toLowerCase().includes(searchQueryTab2.value.toLowerCase()) ||
           item.fullname.toLowerCase().includes(searchQueryTab2.value.toLowerCase()) ||
           item.roomNumber?.toLowerCase().includes(searchQueryTab2.value.toLowerCase()) ||
+          item.status.toLowerCase().includes(searchQueryTab2.value.toLowerCase()) ||
           item.mainr_ProblemTitle
             ?.toLowerCase()
             .includes(searchQueryTab2.value.toLowerCase())
@@ -1426,6 +1493,62 @@ export default {
       }
     };
 
+    const confirmUpdateNotwith = (index) => {
+      Swal.fire({
+        title: "คุณแน่ใจหรือไม่?",
+        text: "คุณไม่ต้องการเบิกใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "ตกลง",
+        cancelButtonText: "ยกเลิก",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          updateNotwith();
+        }
+      });
+    };
+
+    const updateNotwith = async () => {
+      if (!selectedUserTab2.value.mainr_ID) {
+        console.error("mainr_ID is missing in selectedUserTab3:", selectedUserTab2.value);
+        Swal.fire({
+          icon: "error",
+          title: "ไม่สามารถปรับปรุงสถานะ",
+          text: "ข้อมูล mainr_ID ไม่ถูกต้อง",
+        });
+        return;
+      }
+
+      try {
+        const response = await axios.put(`/api/auth/updateStatusNotwith`, {
+          mainr_ID: selectedUserTab2.value.mainr_ID,
+        });
+
+        if (response.status === 200) {
+          Swal.fire({
+            icon: "success",
+            title: "เรียบร้อย",
+            text: "การซ่อมไม่ต้องการเบิกถูกบันทึกแล้ว",
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถบันทึกได้",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating status:", error);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาดในการเรียกใช้ API",
+          text: "ไม่สามารถบันทึกได้",
+        });
+      }
+    };
+
     const assessProblemReqTab2 = async (selectedUser) => {};
     const assessProblemReqTab3 = async (selectedUser) => {};
 
@@ -1502,6 +1625,10 @@ export default {
       statusUser,
       handleSubmitTooltip01,
       updateStatus,
+      updateNotsuccess,
+      confirmUpdateNotsuccess,
+      confirmUpdateNotwith,
+      updateNotwith,
       resStatus,
     };
   },
@@ -1599,5 +1726,40 @@ export default {
   border-radius: 5px;
   padding: 5px;
   border: 1px solid #ced4da;
+}
+
+/* Custom styles */
+
+.swal2-popup {
+  max-width: 195vw; /* กำหนดให้ SweetAlert2 มีขนาดสูงสุด 95% ของหน้าจอ */
+}
+.swal2-input {
+  padding: 16px;
+  height: 500px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.swal2-radio {
+  margin-right: 10px;
+}
+
+.swal2-radio + label {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.swal2-radio:checked + label {
+  color: #007bff;
+}
+
+.swal-textarea {
+  width: 100%; /* กำหนดความกว้างเต็ม */
+  height: 1550px; /* เพิ่มความสูงตามที่ต้องการ */
+  padding: 16px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
 }
 </style>

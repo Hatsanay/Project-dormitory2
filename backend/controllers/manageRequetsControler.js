@@ -249,6 +249,7 @@ const getMacReqById = async (req, res) => {
         INNER JOIN room on room.room_ID = renting.renting_room_ID
     WHERE
       maintenancerequests.mainr_Stat_ID = "STC000002"
+      OR maintenancerequests.mainr_Stat_ID = "STC000010"
     ORDER BY
       maintenancerequests.mainr_ID ASC
     `;
@@ -299,6 +300,67 @@ const sendAssessProblemReq = async (req, res) => {
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
   }
 };
+
+const updateStatusNotwith = async (req, res) => {
+  const { mainr_ID } = req.body;
+  const status = 'STC000003'
+  try {
+    const updateQuery = `
+    UPDATE maintenancerequests
+            SET  mainr_Stat_ID = ?
+            WHERE mainr_ID  = ?
+        `;
+    await db
+      .promise()
+      .query(updateQuery, [status,mainr_ID]);
+
+    res.status(200).json({ message: "ส่งประเมิณปัญหาเรียบร้อยแล้ว!" });
+  } catch (err) {
+    console.error("เกิดข้อผิดพลาด:", err);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+  }
+};
+
+// const sendAssessProblemReq = async (req, res) => {
+//   const { mainr_ID, assessProblemText, userID, selectedOption } = req.body;
+//   let selectStatus = "";
+//   if(selectedOption == "with"){
+//     selectStatus = "";
+//     try {
+//       const updateQuery = `
+//       UPDATE maintenancerequests
+//               SET  asp_detail = ?
+//               WHERE mainr_ID  = ?
+//           `;
+//       await db
+//         .promise()
+//         .query(updateQuery, [assessProblemText,mainr_ID]);
+  
+//       res.status(201).json({ message: "ส่งประเมิณปัญหาเรียบร้อยแล้ว!" });
+//     } catch (err) {
+//       console.error("เกิดข้อผิดพลาด:", err);
+//       res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+//     }
+//   }else{
+//     selectStatus = "STC000003";
+//     try {
+//       const updateQuery2 = `
+//       UPDATE maintenancerequests
+//               SET  asp_detail = ?, mainr_Stat_ID = ?
+//               WHERE mainr_ID  = ?
+//           `;
+//       await db
+//         .promise()
+//         .query(updateQuery2, [assessProblemText,selectStatus,mainr_ID]);
+  
+//       res.status(200).json({ message: "ส่งประเมิณปัญหาเรียบร้อยแล้ว!" });
+//     } catch (err) {
+//       console.error("เกิดข้อผิดพลาด:", err);
+//       res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+//     }
+//   }
+  
+// };
 
 const getStock = async (req, res) => {
   try {
@@ -427,8 +489,7 @@ const getSuccessReq = async (req, res) => {
       return res.status(400).json({ error: "โปรดระบุ id" });
     }
 
-    const query = `
-    SELECT
+    const query = `SELECT
     maintenancerequests.mainr_ID,
     CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
     room.room_Number AS roomNumber,
@@ -438,11 +499,11 @@ const getSuccessReq = async (req, res) => {
     petitiontype.Type AS Type,
     stacase.StaCase_Name AS status,
     CONCAT(
-        MIN(schedulerepairs.Date), ' ', 
+        MAX(schedulerepairs.Date), ' ', 
         MIN(schedulerepairs.startTime), ' - ', 
         MIN(schedulerepairs.endTime)
     ) AS scheduleTime,
-    MIN(schedulerepairs.Date) AS Date,
+    MAX(schedulerepairs.Date) AS Date,
     MIN(schedulerepairs.startTime) AS startTime,
     MIN(schedulerepairs.endTime) AS endTime
 FROM 
@@ -460,7 +521,8 @@ WHERE
 GROUP BY
     maintenancerequests.mainr_ID
 ORDER BY
-    maintenancerequests.mainr_ID ASC;
+    maintenancerequests.mainr_ID ASC
+
     `;
     //STC000004 = รอซ่อม
     //STC000005 = กำลังดำเนินการซ่อม
@@ -548,6 +610,35 @@ const updateStatusReq = async (req, res) => {
   }
 };
 
+
+const updateStatusNotsuccess = async (req, res) => {
+  const { mainr_ID } = req.body;
+
+  try {
+    if (!mainr_ID) {
+      return res.status(400).json({ error: "โปรดระบุ mainr_ID" });
+    }
+
+    let updateQuery = `
+      UPDATE maintenancerequests 
+      SET mainr_Stat_ID = ?
+      WHERE mainr_ID = ?
+    `;
+
+    const queryParams = [ mainr_Stat_ID = "STC000010", mainr_ID];
+    const [result] = await db.promise().query(updateQuery, queryParams);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "ไม่พบข้อมูลที่ต้องการอัปเดต" });
+    }
+
+    res.status(200).json({ message: "สถานะการแจ้งซ่อมถูกอัปเดตเรียบร้อยแล้ว" });
+  } catch (err) {
+    console.error("เกิดข้อผิดพลาด:", err);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+  }
+};
+
 module.exports = {
   getReq,
   getReqhistory,
@@ -561,4 +652,6 @@ module.exports = {
   getSuccessReq,
   getStatusReq,
   updateStatusReq,
+  updateStatusNotsuccess,
+  updateStatusNotwith,
 };

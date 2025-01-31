@@ -11,14 +11,12 @@ const getreqtime = async (req, res) => {
       schedulerepairs.startTime AS startTime,
       schedulerepairs.endTime AS endTime,
       sdr_mainr_ID,
-      requisition.requisition_ID AS requisition_ID,
       room.room_Number AS room,
       GROUP_CONCAT(users.user_Fname, ' ', users.user_Lname) AS technicians
     FROM  
       schedulerepairs
       INNER JOIN maintenancerequests on maintenancerequests.mainr_ID = schedulerepairs.sdr_mainr_ID
       INNER JOIN stacase ms on ms.StaCase_ID = maintenancerequests.mainr_Stat_ID
-      INNER JOIN requisition on requisition.requisition_mainr_ID = maintenancerequests.mainr_ID
       INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
       INNER JOIN room on room.room_ID = renting.renting_room_ID
       INNER JOIN scheculerepairsn_list ON scheculerepairsn_list.srl_sdr_ID = schedulerepairs.ID
@@ -201,6 +199,42 @@ const assignWork = async (req, res) => {
 };
 
 
+// const getTechnicianAppointments = async (req, res) => {
+//   const technicianID = req.query.technicianID;
+//   if (!technicianID) {
+//     return res.status(400).json({ error: "กรุณาระบุรหัสช่าง" });
+//   }
+
+//   try {
+//     const query = `
+//       SELECT Date, startTime, endTime 
+//       FROM schedulerepairs 
+//       INNER JOIN scheculerepairsn_list ON scheculerepairsn_list.srl_sdr_ID = schedulerepairs.ID 
+//       WHERE scheculerepairsn_list.srl_user_ID = ? 
+//       ORDER BY Date, startTime;
+//     `;
+//     const [appointments] = await db.promise().query(query, [technicianID]);
+
+//     // ฟอร์แมตข้อมูลให้อยู่ในรูปแบบที่ FullCalendar ต้องการ
+//     const formattedAppointments = appointments.map((appointment) => {
+//       const date = new Date(appointment.Date).toISOString().split("T")[0]; // แปลงวันที่ให้เป็นรูปแบบ YYYY-MM-DD
+//       const start = `${date}T${appointment.startTime}`;
+//       const end = `${date}T${appointment.endTime}`;
+//       return {
+//         title: "มีการนัดหมาย",
+//         start,
+//         end,
+//         color: "#dc3545",
+//       };
+//     });
+
+//     res.status(200).json(formattedAppointments);
+//   } catch (err) {
+//     console.error("เกิดข้อผิดพลาด:", err);
+//     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลการนัดหมาย" });
+//   }
+// };
+
 const getTechnicianAppointments = async (req, res) => {
   const technicianID = req.query.technicianID;
   if (!technicianID) {
@@ -219,9 +253,14 @@ const getTechnicianAppointments = async (req, res) => {
 
     // ฟอร์แมตข้อมูลให้อยู่ในรูปแบบที่ FullCalendar ต้องการ
     const formattedAppointments = appointments.map((appointment) => {
-      const date = new Date(appointment.Date).toISOString().split("T")[0]; // แปลงวันที่ให้เป็นรูปแบบ YYYY-MM-DD
-      const start = `${date}T${appointment.startTime}`;
-      const end = `${date}T${appointment.endTime}`;
+      let date = new Date(appointment.Date);
+      
+      // เพิ่ม 1 วัน
+      date.setDate(date.getDate() + 1);  // เพิ่ม 1 วัน
+      const formattedDate = date.toISOString().split("T")[0];  // แปลงวันที่ให้เป็นรูปแบบ YYYY-MM-DD
+
+      const start = `${formattedDate}T${appointment.startTime}`;
+      const end = `${formattedDate}T${appointment.endTime}`;
       return {
         title: "มีการนัดหมาย",
         start,
@@ -236,7 +275,6 @@ const getTechnicianAppointments = async (req, res) => {
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลการนัดหมาย" });
   }
 };
-
 
 
 

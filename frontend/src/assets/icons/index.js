@@ -39,6 +39,7 @@ import {
   cilBell,
   cilCalculator,
   cilCalendar,
+  cilCart,
   cilChartPie,
   cilCheck,
   cilCheckCircle,
@@ -87,7 +88,7 @@ import {
   cilUser,
   cilUserFemale,
   cilUserFollow,
-  cilXCircle,
+  cilXCircle
 } from '@coreui/icons'
 
 export const iconsSet = Object.assign(
@@ -148,7 +149,7 @@ export const iconsSet = Object.assign(
     cilXCircle,
     cilAlarm,
     cilRoom,
-    cilSend,cilDescription,cilAccountLogout,cilClock,
+    cilSend,cilDescription,cilAccountLogout,cilClock,cilCart
   },
   {
     cifUs,

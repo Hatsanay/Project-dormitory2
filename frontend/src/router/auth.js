@@ -95,6 +95,12 @@ export const decodeJWTTH = (token) => {
       'View_PetitionType',        //38
       'add_PetitionType',         //39
       'edit_PetitionType',        //40
+
+      'View_OrderManage',            //41
+      'create_OrderManage',             //42
+      'edit_OrderManage',            //43
+
+      'Approve_OrderView',           //44
     ];
     
     const permissionsToken = getPermissions();

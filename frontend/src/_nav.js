@@ -68,6 +68,28 @@ export default [
     icon: 'cilClock',
     permission_index: 11,
   },
+
+    ///ใบสั่งซื้อ///
+    {
+      component: 'CNavTitle',
+      name: 'จัดการใบสั่งซื้อ',
+      permission_index: 41, 
+    },
+    {
+      component: 'CNavItem',
+      name: 'ใบสั่งซื้อ',
+      to: '/orderManageView',
+      icon: 'cilCart',
+      permission_index: 41,
+    },
+    {
+      component: 'CNavItem',
+      name: 'อนุมัติใบสั่งซื้อ',
+      to: '/approveOrderView',
+      icon: 'cilDescription',
+      permission_index: 44,
+    },
+  
   ///จัดการค่าคงที่ผู้ใช้งาน///
   {
     component: 'CNavTitle',

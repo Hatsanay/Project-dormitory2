@@ -28,21 +28,24 @@
                 </CRow>
               </CCol>
               <CRow class="mb-3">
-                
                 <CCol md="12">
                   <CFormLabel>กำหนดสิทธิ์:</CFormLabel>
-                  <CRow>
-                    <template v-for="(permission, index) in permissionsList" :key="index">
-                      <CCol md="3">
-                        <CFormCheck
-                          :id="'permission' + index"
-                          v-model="selectedPermissions[index]"
-                          
-                        />
-                        <CFormLabel :for="'permission' + index">{{ permission }}</CFormLabel>
-                      </CCol>
-                    </template>
-                  </CRow>
+                  <template v-for="(category, catIndex) in permissionsCategories" :key="catIndex">
+                    <h6 class="mt-3">{{ category.name }}</h6>
+                    <CRow>
+                      <template v-for="(permission, index) in category.permissions" :key="index" >
+                        <CCol md="3" > 
+                          <CFormCheck disabled
+                            :id="'permission' + permission.index"
+                            :value="1"
+                            :checked="selectedPermissions[permission.index] === 1"
+                            @change="togglePermission(permission.index)"
+                          />
+                          <CFormLabel :for="'permission' + permission.index">{{ permission.label }}</CFormLabel>
+                        </CCol>
+                      </template>
+                    </CRow>
+                  </template>
                 </CCol>
               </CRow>
             </CForm>
@@ -83,17 +86,105 @@ export default {
     const permission_ID = ref(props.selectedRole?.permission_ID || "");
     const selectedPermissions = ref(new Array(41).fill(0));
     const toasts = ref([]);
-    const permissionsList = ref([
-      "ล็อคเอาท์", "หน้าจอหลัก", "หน้าเเสดงผลผู้ใข้", "หน้าเเสดงผลแอ็ดมิน",
-      "หน้าเเสดงผลช่าง", "หน้าเเสดงผลนิติ", "ประวัติการแจ้งซ่อม", "ส่งคำร้องแจ้งซ่อม",
-      "คำขอร้องแจ้งซ่อม", "รับคำขอร้องแจ้งซ่อม", "การเบิกวัสดุ", "นัดเวลาเข้าซ่อม",
-      "จัดการผู้ใช้งาน", "เพิ่มผู้ใช้งาน", "แก้ไขผู้ใช้งาน", "จัดการห้องพัก",
-      "เพิ่มห้องพัก", "แก้ไขห้องพัก", "จัดการคลังวัสดุ", "เพิ่มคลังวัสดุ",
-      "แก้ไขคลังวัสดุ", "จัดการประเภทวัสดุ", "เพิ่มประเภทวัสดุ", "แก้ไขประเภทวัสดุ",
-      "จัดการสถานะ", "เพิ่มสถานะ", "แก้ไขสถานะ", "จัดการประเภทสถานะ",
-      "เพิ่มประเภทสถานะ", "แก้ไขประเภทสถานะ", "จัดการหน่วย", "เพิ่มหน่วย",
-      "แก้ไขหน่วย", "จัดการตำแหน่ง", "เพิ่มจัดการตำแหน่ง", "แก้ไขจัดการตำแหน่ง",
-      "การเช่า","เพิ่มการเช่า","จัดการประเภทคำร้อง","เพิ่มประเภทคำร้อง","แก้ไขประเภทคำร้อง"
+    const permissionsCategories = ref([
+      // {
+      //   name: "การเข้าถึงระบบ",
+      //   permissions: [
+      //     { index: 0, label: "ล็อคเอาท์" },
+      //     { index: 1, label: "หน้าจอหลัก" }
+      //   ]
+      // },
+      {
+        name: "การแสดงผล",
+        permissions: [
+          { index: 2, label: " หน้าแสดงผลผู้ใช้" },
+          { index: 3, label: " หน้าแสดงผลแอดมิน" },
+          { index: 4, label: " หน้าแสดงผลช่าง" },
+          { index: 5, label: " หน้าแสดงผลนิติ" },
+        ]
+      },
+      {
+        name: "การแจ้งซ่อมและการซ่อมบำรุง",
+        permissions: [
+          { index: 6, label: " ประวัติการแจ้งซ่อม" },
+          { index: 7, label: " ส่งคำร้องแจ้งซ่อม" },
+          { index: 8, label: " คำขอร้องแจ้งซ่อม" },
+          { index: 9, label: " รับคำขอร้องแจ้งซ่อม" },
+          { index: 10, label: " การเบิกวัสดุ" },
+          { index: 11, label: " นัดเวลาเข้าซ่อม" }
+        ]
+      },
+      {
+        name: "การจัดการผู้ใช้งาน",
+        permissions: [
+          { index: 12, label: " จัดการผู้ใช้งาน" },
+          { index: 13, label: " เพิ่มผู้ใช้งาน" },
+          { index: 14, label: " แก้ไขผู้ใช้งาน" },
+        ]
+      },
+      {
+        name: "การจัดการห้องพัก",
+        permissions: [
+          { index: 15, label: " จัดการห้องพัก" },
+          { index: 16, label: " เพิ่มห้องพัก" },
+          { index: 17, label: " แก้ไขห้องพัก" },
+        ]
+      },
+      {
+        name: "การจัดการคลัง",
+        permissions: [
+          { index: 18, label: " จัดการคลังวัสดุ" },
+          { index: 19, label: " เพิ่มคลังวัสดุ" },
+          { index: 20, label: " แก้ไขคลังวัสดุ" },
+        ]
+      },
+      {
+        name: "การจัดการคลัง",
+        permissions: [
+          { index: 21, label: " จัดการประเภทวัสดุ" },
+          { index: 22, label: " เพิ่มประเภทวัสดุ" },
+          { index: 23, label: " แก้ไขประเภทวัสดุ" },
+        ]
+      },
+      // {
+      //   name: "การจัดการคลัง",
+      //   permissions: [
+      //     { index: 24, label: "จัดการประเภทวัสดุ" },
+      //     { index: 25, label: "เพิ่มประเภทวัสดุ" },
+      //     { index: 26, label: "แก้ไขประเภทวัสดุ" },
+      //   ]
+      // },
+      {
+        name: "การจัดการหน่วย",
+        permissions: [
+          { index: 30, label: " จัดการหน่วย" },
+          { index: 31, label: " เพิ่มหน่วย" },
+          { index: 32, label: " แก้ไขหน่วย" },
+        ]
+      },
+      {
+        name: "การจัดการตำแหน่ง",
+        permissions: [
+          { index: 33, label: " จัดการตำแหน่ง" },
+          { index: 34, label: " เพิ่มจัดการตำแหน่ง" },
+          { index: 35, label: " แก้ไขจัดการตำแหน่ง" },
+        ]
+      },
+      {
+        name: "การจัดการเช่า",
+        permissions: [
+          { index: 36, label: " การเช่า" },
+          { index: 37, label: " เพิ่มการเช่า" },
+        ]
+      },
+      {
+        name: "การจัดการประเภทคำร้อง",
+        permissions: [
+          { index: 38, label: " จัดการประเภทคำร้อง" },
+          { index: 39, label: " เพิ่มประเภทคำร้อง" },
+          { index: 40, label: " แก้ไขประเภทคำร้อง" },
+        ]
+      },
     ]);
 
     const isRoleNameInvalid = computed(() => role_Name.value.trim() === "");
@@ -138,7 +229,7 @@ export default {
     return {
       role_ID,
       role_Name,
-      permissionsList,
+      permissionsCategories,
       selectedPermissions,
       toasts,
       isRoleNameInvalid,

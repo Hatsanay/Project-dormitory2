@@ -51,7 +51,9 @@ import RegisPetitionType from '../views/staticPetitionType/RegisPetitionType.vue
 import ViewPetitionTypeView from '../views/staticPetitionType/ViewPetitionTypeView.vue';
 
 
-
+import approveOrderView from '../views/Order/approveOrderView.vue';
+import orderCreate from '../views/Order/orderCreate.vue';
+import orderView from '../views/Order/orderView.vue';
 
 import { clearToken, hasPermission, isAuthenticated } from './auth';
 
@@ -304,6 +306,29 @@ const routes = [
         name: 'แก้ไขข้อมูลประเภทคำร้อง',
         meta: { permission: 'edit_PetitionType', requiresAuth: true },
         component: EditPetitionTypeView,
+      },
+
+      //ใบสั่งซื้อ
+      {
+        path: '/orderManageView',
+        name: 'ใบสั่งซื้อ',
+        meta: { permission: 'View_OrderManage', requiresAuth: true },
+        component: orderView,
+      },
+
+      {
+        path: '/orderCreate',
+        name: 'สร้างใบสั่งซื้อ',
+        meta: { permission: 'create_OrderManage', requiresAuth: true },
+        component: orderCreate,
+      },
+
+       //ใบสั่งซื้อ
+       {
+        path: '/approveOrderView',
+        name: 'อนุมัติใบสั่งซื้อ',
+        meta: { permission: 'Approve_OrderView', requiresAuth: true },
+        component: approveOrderView,
       },
 
       ///ตั้งค่า///

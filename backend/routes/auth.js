@@ -174,6 +174,12 @@ const {
 
 } = require("../controllers/floorController");
 
+//new โครงการ 2 -------------------------------------------------------------------ดิ๊กเขียน
+const {
+  createOrder,
+  getPendingOrders,
+} = require("../controllers/orderControler");
+
 // const {
 //   registerRoomType,
 //   getRoomType,
@@ -376,4 +382,8 @@ router.put("/updateStatusRenting", authenticateToken, updateStatusRenting);
 router.put("/updatePetitionType", authenticateToken, updatePetitionType);
 router.put("/updateStatusPetitionType", authenticateToken, updateStatusPetitionType);
 
+
+//new โครงการ 2 -------------------------------------------------------------------ดิ๊กเขียน
+router.post("/createOrder", authenticateToken, createOrder);
+router.get("/getPendingOrders", authenticateToken, getPendingOrders);
 module.exports = router;

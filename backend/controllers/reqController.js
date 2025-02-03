@@ -49,7 +49,6 @@ ORDER BY
     //STC000006 = เสร็จสิ้น
     //STC000008 = เจ้าหน้าที่ปฎิเสธคำร้อง
 
-
     const [result] = await db.promise().query(query, [userId]);
 
     if (result.length === 0) {
@@ -278,7 +277,7 @@ const submitRepairRequest = async (req, res) => {
       ]);
 
     //STC000001 = รอนิติบุคคลตรวจสอบ
-    
+
     if (files && files.length > 0) {
       const imageQuery = `
         INSERT INTO imagerequests (imges_ID, imges_Path, image_mainr_ID)
@@ -348,8 +347,7 @@ const getImgById = async (req, res) => {
 //////////cancelReq///////////
 ///////////////////////////////
 const cancelReq = async (req, res) => {
-    
-  const { mainr_ID, mainrstatus_ID = "STC000007" } = req.body;  //STC000007 = ยกเลิกการแจ้งซ่อม
+  const { mainr_ID, mainrstatus_ID = "STC000007" } = req.body; //STC000007 = ยกเลิกการแจ้งซ่อม
 
   try {
     if (!mainr_ID) {
@@ -394,7 +392,6 @@ const successReq = async (req, res) => {
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
   }
 };
-
 
 const getroomByID = async (req, res) => {
   try {

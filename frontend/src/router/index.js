@@ -56,6 +56,10 @@ import orderCreate from '../views/Order/orderCreate.vue';
 import orderEdit from '../views/Order/orderEdit.vue';
 import orderView from '../views/Order/orderView.vue';
 
+
+import AddLeaveRequestView from '../views/LeaveRequest/AddLeaveRequestView.vue';
+import AddHolidayView from '../views/Holiday/HolidayView.vue';
+
 import { clearToken, hasPermission, isAuthenticated } from './auth';
 
 const routes = [
@@ -340,6 +344,22 @@ const routes = [
         component: approveOrderView,
       },
 
+
+      //----------------- วันลาเเละวันหยุด -------------------------
+      {
+        path: '/AddLeaveRequestView',
+        name: 'เพิ่มวันลา',
+        meta: { permission: 'add_LeaveRequestView', requiresAuth: true },
+        component: AddLeaveRequestView,
+      },
+      {
+        path: '/AddHolidayView',
+        name: 'จัดการวันหยุด',
+        meta: { permission: 'add_HolidayView', requiresAuth: true },
+        component: AddHolidayView,
+      },
+
+      
       ///ตั้งค่า///
       {
         path: '/UserSetView',

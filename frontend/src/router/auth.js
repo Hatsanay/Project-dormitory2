@@ -101,6 +101,8 @@ export const decodeJWTTH = (token) => {
       'edit_OrderManage',            //43
 
       'Approve_OrderView',           //44
+      'add_LeaveRequestView',
+      'add_HolidayView'
     ];
     
     const permissionsToken = getPermissions();

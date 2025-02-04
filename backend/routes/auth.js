@@ -202,6 +202,21 @@ const {
 // } = require("../controllers/AirController");
 
 
+
+
+const {
+  AddLeaveRequest,
+  getUserForLeaveRe,
+  getLeaveRe,
+  CancelLeave
+} = require("../controllers/leaverequestControler");
+
+const {
+  setWeeklyHoliday,
+  getWeeklyHolidays,
+  getUserForHoliday
+} = require("../controllers/HolidayControler");
+
 // getUserByIdfromReq
 // const { registerRoom } = require('../controllers/RoomController');
 const authenticateToken = require("../middleware/auth");
@@ -388,4 +403,18 @@ router.put("/updateStatusPetitionType", authenticateToken, updateStatusPetitionT
 router.post("/createOrder", authenticateToken, createOrder);
 router.get("/getPendingOrders", authenticateToken, getPendingOrders);
 router.get("/orders/:order_ID/pdf", authenticateToken, createOrderPDF);
+
+
+//============== การเพิ่มวันลาเเละวันหยุด ======================
+router.post("/AddLeaveRequest", authenticateToken, AddLeaveRequest);
+router.get("/getUserForLeaveRe", authenticateToken, getUserForLeaveRe);
+router.get("/getLeaveRe", authenticateToken, getLeaveRe);
+router.put("/CancelLeave", authenticateToken, CancelLeave);
+
+router.post("/setWeeklyHoliday", authenticateToken, setWeeklyHoliday);
+router.get("/getWeeklyHolidays", authenticateToken, getWeeklyHolidays);
+router.get("/getUserForHoliday", authenticateToken, getUserForHoliday);
+
+
+
 module.exports = router;

@@ -141,6 +141,25 @@ export default [
     icon: 'cilPuzzle',
     permission_index: 37,
   },
+  {
+    component: 'CNavTitle',
+    name: 'จัดการวันหยุด',
+    permission_index: [45,46], 
+  },
+  {
+    component: 'CNavItem',
+    name: 'จัดการวันหยุดพนักงาน',
+    to: '/AddHolidayView',
+    icon: 'cilPuzzle',
+    permission_index: 45,
+  },
+  {
+    component: 'CNavItem',
+    name: 'จัดการวันลาพนักงาน',
+    to: '/AddLeaveRequestView',
+    icon: 'cilPuzzle',
+    permission_index: 46,
+  },
   ///ตั้งค่า///
   {
     component: 'CNavTitle',

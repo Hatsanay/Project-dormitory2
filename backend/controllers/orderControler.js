@@ -109,10 +109,9 @@ const createOrder = async (req, res) => {
   }
 };
 
-// ฟังก์ชันในการสร้างใบสั่งซื้อ (PDF)
 
 const generateInvoicePDF = async (order, res) => {
-  const doc = new PDFDocument();
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
   
   // กำหนดให้ PDF ส่งกลับไปยัง response
   res.setHeader('Content-Type', 'application/pdf');
@@ -123,43 +122,99 @@ const generateInvoicePDF = async (order, res) => {
   // โหลดฟอนต์ที่รองรับภาษาไทย
   doc.registerFont('th-sarabun', './fonts/THSarabunNew.ttf'); // ใช้ฟอนต์ที่รองรับไทย
 
-  // เพิ่มข้อมูลบริษัทและส่วนหัว
-  doc.font('th-sarabun').fontSize(18).text("ใบสั่งซื้อ", { align: "center" });
-  doc.moveDown();
-  
-  // ข้อมูลบริษัท
-  doc.font('th-sarabun').fontSize(12).text("บริษัท: FLOWACCOUNT", { align: "left" });
-  doc.text("ที่อยู่: 1234/56 ถนนราชวิถี กรุงเทพฯ 10110", { align: "left" });
-  doc.text("โทรศัพท์: 02-1234567", { align: "left" });
-  doc.text("อีเมล: support@flowaccount.com", { align: "left" });
-  doc.text("เว็บไซต์: www.flowaccount.com", { align: "left" });
+  // ใส่ข้อความ "ใบสั่งซื้อ" ด้านบน
+  doc.font('th-sarabun').fontSize(28).fillColor('#1d3557').text("ใบสั่งซื้อ", { align: "center" });
+  doc.moveDown(0.5);
 
-  doc.moveDown();
+  // ข้อมูลบริษัท
+  doc.font('th-sarabun').fontSize(12).fillColor('#333').text("บริษัท: ", { align: "left" });
+  doc.text("ที่อยู่: ", { align: "left" });
+  doc.text("โทรศัพท์: ", { align: "left" });
+  doc.text("อีเมล: ", { align: "left" });
+  doc.text("เว็บไซต์: ", { align: "left" });
+
   
+
+  doc.moveDown(1);
+
   // ข้อมูลใบสั่งซื้อ
-  doc.font('th-sarabun').text(`เลขที่ใบสั่งซื้อ: ${order.order_ID}`, { align: "left" });
+  doc.font('th-sarabun').fontSize(12).fillColor('#333').text(`เลขที่ใบสั่งซื้อ: ${order.order_ID}`, { align: "left" });
   doc.text(`วันที่: ${order.date}`, { align: "left" });
   doc.text(`สถานะ: ${order.status}`, { align: "left" });
 
-  doc.moveDown();
-  
-  // รายการสินค้า
-  doc.font('th-sarabun').text("รายการสินค้า:", { align: "left" });
-  order.items.forEach((item, index) => {
-    doc.text(`${index + 1}. ${item.name} | จำนวน: ${item.quantity} | ราคา: ${item.price} | รวม: ${item.totalprice}`);
-  });
+  doc.moveDown(1);
+
+  // เส้นขอบ
+  doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#e1e1e1').lineWidth(1).stroke(); // เส้นขอบด้านบนของรายการสินค้า
+
+// รายการสินค้า
+doc.font('th-sarabun').fontSize(14).fillColor('#1d3557').text("รายการสินค้า:", { align: "left", underline: true });
+doc.moveDown(0.5);
+
+// สร้างหัวตาราง
+const tableTop = doc.y;
+const rowHeight = 20;
+const columnWidths = [50, 100, 180, 70, 100]; // กำหนดความกว้างของแต่ละคอลัมน์
+const columns = ['#', 'สินค้า', 'ราคา', 'จำนวน', 'รวม'];
+
+let currentY = tableTop;
+
+// วาดเส้นหัวตาราง
+columns.forEach((col, idx) => {
+  doc.font('th-sarabun').fontSize(12).fillColor('#333').text(col, columnWidths[idx] * idx + 50, currentY);
+});
+
+// วาดเส้นขอบหัวตาราง
+doc.moveTo(50, currentY + rowHeight).lineTo(550, currentY + rowHeight).strokeColor('#e1e1e1').lineWidth(1).stroke();
+
+// วาดเส้นและรายการสินค้า
+order.items.forEach((item, index) => {
+  currentY += rowHeight;
+
+  // วาดข้อมูลในแต่ละแถว
+  doc.font('th-sarabun').fontSize(12).fillColor('#333').text(index + 1, 50, currentY);
+  doc.text(item.stockname, 100 + columnWidths[0], currentY);
+  doc.text(`${item.quantity} ${item.unit}`, 110 + columnWidths[0] + columnWidths[1], currentY);
+  doc.text(item.price, 80 + columnWidths[0] + columnWidths[1] + columnWidths[2], currentY);
+  doc.text(item.totalprice, 60 + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3], currentY);
+
+  // วาดเส้นขอบรายการสินค้า
+  if (index !== order.items.length - 1) {
+    doc.moveTo(50, currentY + rowHeight).lineTo(550, currentY + rowHeight).strokeColor('#e1e1e1').lineWidth(1).stroke();
+  }
+});
+
+// วาดเส้นขอบล่างสุด
+doc.moveTo(50, currentY + rowHeight).lineTo(550, currentY + rowHeight).strokeColor('#e1e1e1').lineWidth(1).stroke();
 
   doc.moveDown();
-  
-  // สรุปยอด
-  doc.text(`ราคารวม: ${order.total} บาท`, { align: "left" });
+
+  // เส้นขอบ
+  doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#e1e1e1').lineWidth(1).stroke(); // เส้นขอบด้านล่างของรายการสินค้า
+
+  // สรุปยอดรวม
+  doc.font('th-sarabun').fontSize(14).fillColor('#1d3557').text(`ราคารวม: ${order.total} บาท`, { align: "left", bold: true });
+  doc.moveDown(0.5);
 
   // ข้อมูลการชำระเงิน
-  doc.text(`ยอดที่ต้องชำระ: ${order.total} บาท`, { align: "left" });
+  // doc.text(`ยอดที่ต้องชำระ: ${order.total} บาท`, { align: "left", bold: true });
+  doc.moveDown(1);
+
+
+  const approvedBy = order.approvedBy ? order.approvedBy : "......................";
+  // โลโก้และข้อมูลวันและผู้อนุมัติ (ด้านล่าง)
+  doc.moveDown(2);
+  doc.text(`ผู้จัดทำ: ${order.fullname}`, { align: 'left', continued: true }).text(`วันที่: ${order.date}`, { align: 'right' });
+
+  doc.moveDown(1);
+  doc.text(`ผู้อนุมัติ: ${approvedBy}`, { align: 'left', continued: true }).text(`สถานะ: ${order.status}`, { align: 'right' });
 
   // ปิดเอกสาร
   doc.end();
 };
+
+
+
 
 // ฟังก์ชันในการดึงข้อมูลใบสั่งซื้อที่ยังไม่อนุมัติ
 const getPendingOrders = async (req, res) => {
@@ -185,8 +240,19 @@ const getPendingOrders = async (req, res) => {
       return res.status(404).json({ error: "ไม่พบข้อมูลการแจ้งซ่อม" });
     }
 
+    // ฟอร์แมตวันที่ในผลลัพธ์
+    const formattedResult = result.map((item) => ({
+      ...item,
+      date:
+        new Date(item.date).toLocaleDateString("th-TH", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }) 
+    }));
+
     // ดึงข้อมูลของรายการสินค้าที่เกี่ยวข้องกับใบสั่งซื้อ
-    const orderDetails = await Promise.all(result.map(async (order) => {
+    const orderDetails = await Promise.all(formattedResult.map(async (order) => {
       const itemsQuery = "SELECT * FROM orderlist WHERE orderlist_orders_ID = ?";
       const [items] = await db.promise().query(itemsQuery, [order.order_ID]);
       order.items = items;
@@ -208,8 +274,10 @@ const createOrderPDF = async (req, res) => {
   try {
     // ดึงข้อมูลใบสั่งซื้อจากฐานข้อมูล
     const query = `
-      SELECT order_ID, order_user_ID, date, order_stat_ID, total
+      SELECT order_ID, order_user_ID, date, order_stat_ID, CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname, staorder.StaOrder_Name AS status, total
       FROM orders
+      INNER JOIN users on users.user_ID = orders.order_user_ID
+      INNER JOIN staorder on staorder.StaOrder_ID = orders.order_stat_ID
       WHERE order_ID = ?;
     `;
     const [order] = await db.promise().query(query, [order_ID]);
@@ -217,6 +285,15 @@ const createOrderPDF = async (req, res) => {
     if (order.length === 0) {
       return res.status(404).json({ error: "ไม่พบข้อมูลใบสั่งซื้อ" });
     }
+
+    // ฟอร์แมตวันที่ให้เป็นแบบวัน/เดือน/ปี พร้อมเวลา
+    const formattedDate = new Date(order[0].date).toLocaleDateString("th-TH", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    // อัพเดทข้อมูลวันที่ที่ฟอร์แมตแล้ว
+    order[0].date = formattedDate;
 
     // ดึงรายการสินค้า
     const itemsQuery = "SELECT * FROM orderlist WHERE orderlist_orders_ID = ?";
@@ -233,6 +310,7 @@ const createOrderPDF = async (req, res) => {
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการสร้าง PDF" });
   }
 };
+
 
 
 

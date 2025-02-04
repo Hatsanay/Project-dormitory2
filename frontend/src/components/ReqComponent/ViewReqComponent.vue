@@ -711,4 +711,13 @@ export default {
   padding: 5px;
   border: 1px solid #ced4da;
 }
+
+/* .nav-tabs .nav-link.active {
+  background-color: #5856d6;
+  color: white;
+}
+
+.nav-tabs .nav-link {
+  color: #007bff;
+} */
 </style>

@@ -12,7 +12,7 @@
           ใบสั่งซื้อ
         </a>
       </li>
-      <li class="nav-item">
+      <!-- <li class="nav-item">
         <a
           class="nav-link"
           :class="{ active: activeTab === '2' }"
@@ -22,7 +22,7 @@
           <i class="fa-solid fa-cart-shopping"></i>
           ประวัติใบสั่งซื้อ
         </a>
-      </li>
+      </li> -->
     </ul>
 
     <div class="tab-content mt-3">
@@ -68,6 +68,8 @@
                       <th>วันที่</th>
                       <th>ราคารวม</th>
                       <th>สถานะ</th>
+                      <th>แก้ไข</th>
+                      <th>ใบสั่งซื้อ</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -82,6 +84,28 @@
                       <td>{{ order.date }}</td>
                       <td>{{ order.total }}</td>
                       <td>{{ order.status }}</td>
+                      <td>
+                        <button
+                          class="btn btn-warning btn-sm"
+                          @click="
+                            $router.push({
+                              path: '/orderEdit',
+                              query: { id: order.order_ID },
+                            })
+                          "
+                        >
+                          <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          class="btn btn-info btn-sm fontwhite"
+                          @click="showModal(item)"
+                        >
+                          <i class="fa-solid fa-eye"></i>
+                        </button>
+                      </td>
+                      <td></td>
                     </tr>
                   </tbody>
                 </table>
@@ -149,6 +173,7 @@
 <script>
 import { ref, computed, watch, onMounted } from "vue";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default {
   name: "orderManage",
@@ -167,16 +192,25 @@ export default {
     const fetchOrders = async () => {
       const offset = (currentPage.value - 1) * rowsPerPage.value;
       try {
+        const token = localStorage.getItem("token"); // ดึง token จาก localStorage
         const response = await axios.get("/api/auth/getPendingOrders", {
           params: {
             limit: rowsPerPage.value,
             offset: offset,
             search: searchQuery.value,
           },
+          headers: {
+            Authorization: `Bearer ${token}`, // ส่ง token ไปกับ request
+          },
         });
         orders.value = response.data;
       } catch (error) {
         console.error("Error fetching orders:", error);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถดึงข้อมูลใบสั่งซื้อได้",
+        });
       }
     };
 
@@ -205,3 +239,31 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* .nav-tabs .nav-link.active {
+  background-color: #5856d6;
+  color: white;
+}
+
+.nav-tabs .nav-link {
+  color: #007bff;
+} */
+
+/* .modern-button {
+  background-color: #5856d6;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+} */
+
+.modern-button:hover {
+  background-color: #0056b3;
+}
+
+.fontwhite {
+  color: white;
+}
+</style>

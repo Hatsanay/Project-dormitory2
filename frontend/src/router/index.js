@@ -53,6 +53,7 @@ import ViewPetitionTypeView from '../views/staticPetitionType/ViewPetitionTypeVi
 
 import approveOrderView from '../views/Order/approveOrderView.vue';
 import orderCreate from '../views/Order/orderCreate.vue';
+import orderEdit from '../views/Order/orderEdit.vue';
 import orderView from '../views/Order/orderView.vue';
 
 import { clearToken, hasPermission, isAuthenticated } from './auth';
@@ -322,6 +323,14 @@ const routes = [
         meta: { permission: 'create_OrderManage', requiresAuth: true },
         component: orderCreate,
       },
+
+      {
+        path: '/orderEdit',
+        name: 'แก้ไขใบสั่งซื้อ',
+        meta: { permission: 'edit_OrderManage', requiresAuth: true },
+        component: orderEdit,
+      },
+
 
        //ใบสั่งซื้อ
        {

@@ -100,7 +100,7 @@
                       <td>
                         <button
                           class="btn btn-info btn-sm fontwhite"
-                          @click="showModal(item)"
+                          @click="viewInvoicePDF(order.order_ID)"
                         >
                           <i class="fa-solid fa-eye"></i>
                         </button>
@@ -219,6 +219,27 @@ export default {
       fetchOrders();
     };
 
+    const viewInvoicePDF = async (orderID) => {
+      const token = localStorage.getItem("token"); // รับ token จาก localStorage
+
+      try {
+        // ใช้ window.open() เพื่อเปิด URL ในแท็บใหม่
+        const response = await axios.get(`/api/auth/orders/${orderID}/pdf`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // ส่ง token ใน header
+          },
+          responseType: "arraybuffer", // รับข้อมูลแบบ arraybuffer เพื่อจัดการไฟล์
+        });
+
+        const fileURL = URL.createObjectURL(
+          new Blob([response.data], { type: "application/pdf" })
+        );
+        window.open(fileURL, "_blank"); // เปิด PDF ในแท็บใหม่
+      } catch (error) {
+        console.error("Error opening PDF:", error);
+      }
+    };
+
     onMounted(() => {
       fetchOrders();
     });
@@ -235,6 +256,7 @@ export default {
       setActiveTab,
       setPage,
       fetchOrders,
+      viewInvoicePDF,
     };
   },
 };

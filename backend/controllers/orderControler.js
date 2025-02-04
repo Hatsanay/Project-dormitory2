@@ -1,4 +1,6 @@
 const db = require("../config/db");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
 
 // ฟังก์ชันในการอัปเดต max_id ในตาราง maxid
 const updateMaxID = async (tableName, newMaxID) => {
@@ -107,63 +109,132 @@ const createOrder = async (req, res) => {
   }
 };
 
+// ฟังก์ชันในการสร้างใบสั่งซื้อ (PDF)
+
+const generateInvoicePDF = async (order, res) => {
+  const doc = new PDFDocument();
+  
+  // กำหนดให้ PDF ส่งกลับไปยัง response
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename=invoice.pdf');
+
+  doc.pipe(res); // ส่งข้อมูล PDF ไปที่ Response
+
+  // โหลดฟอนต์ที่รองรับภาษาไทย
+  doc.registerFont('th-sarabun', './fonts/THSarabunNew.ttf'); // ใช้ฟอนต์ที่รองรับไทย
+
+  // เพิ่มข้อมูลบริษัทและส่วนหัว
+  doc.font('th-sarabun').fontSize(18).text("ใบสั่งซื้อ", { align: "center" });
+  doc.moveDown();
+  
+  // ข้อมูลบริษัท
+  doc.font('th-sarabun').fontSize(12).text("บริษัท: FLOWACCOUNT", { align: "left" });
+  doc.text("ที่อยู่: 1234/56 ถนนราชวิถี กรุงเทพฯ 10110", { align: "left" });
+  doc.text("โทรศัพท์: 02-1234567", { align: "left" });
+  doc.text("อีเมล: support@flowaccount.com", { align: "left" });
+  doc.text("เว็บไซต์: www.flowaccount.com", { align: "left" });
+
+  doc.moveDown();
+  
+  // ข้อมูลใบสั่งซื้อ
+  doc.font('th-sarabun').text(`เลขที่ใบสั่งซื้อ: ${order.order_ID}`, { align: "left" });
+  doc.text(`วันที่: ${order.date}`, { align: "left" });
+  doc.text(`สถานะ: ${order.status}`, { align: "left" });
+
+  doc.moveDown();
+  
+  // รายการสินค้า
+  doc.font('th-sarabun').text("รายการสินค้า:", { align: "left" });
+  order.items.forEach((item, index) => {
+    doc.text(`${index + 1}. ${item.name} | จำนวน: ${item.quantity} | ราคา: ${item.price} | รวม: ${item.totalprice}`);
+  });
+
+  doc.moveDown();
+  
+  // สรุปยอด
+  doc.text(`ราคารวม: ${order.total} บาท`, { align: "left" });
+
+  // ข้อมูลการชำระเงิน
+  doc.text(`ยอดที่ต้องชำระ: ${order.total} บาท`, { align: "left" });
+
+  // ปิดเอกสาร
+  doc.end();
+};
+
+// ฟังก์ชันในการดึงข้อมูลใบสั่งซื้อที่ยังไม่อนุมัติ
 const getPendingOrders = async (req, res) => {
-  // ดึงค่าจาก query parameters ที่ส่งมาจาก frontend
   const { limit, offset, search } = req.query;
 
   // สร้างเงื่อนไขสำหรับการค้นหาข้อมูล
-  // ถ้ามีการส่งคำค้นหามา (search query) จะทำการสร้างเงื่อนไขค้นหาด้วย LIKE
-  // โดยใช้คำค้นหาในฟิลด์ order_ID, order_user_ID, date, ชื่อผู้ใช้, และสถานะ
-  // หากไม่มีการค้นหาจะไม่ใช้เงื่อนไขการค้นหานี้
   const searchCondition = search ? `AND (order_ID LIKE ? OR order_user_ID LIKE ? OR date LIKE ? OR CONCAT(users.user_Fname, ' ', users.user_Lname) LIKE ? OR staorder.StaOrder_Name LIKE ?)` : "";
   const searchValue = search ? [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`] : [];
 
   try {
-    // สร้าง SQL query สำหรับดึงข้อมูลใบสั่งซื้อที่ยังไม่อนุมัติ
-    // โดยการกรองข้อมูลที่มี `order_stat_ID` เป็น 'SOD000002' (สถานะยังไม่ได้อนุมัติ)
-    // ใช้คำค้นหาหากมีการส่งมาจาก frontend
-    // ใช้ LIMIT และ OFFSET เพื่อกำหนดจำนวนแถวที่ต้องการแสดงผลตามที่ frontend ระบุ
     const query = `
-      SELECT order_ID, 
-             order_user_ID,
-             CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
-             date,
-             staorder.StaOrder_Name AS status,
-             total
+      SELECT order_ID, order_user_ID, CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname, date, staorder.StaOrder_Name AS status, total
       FROM orders
       INNER JOIN users on users.user_ID = orders.order_user_ID
       INNER JOIN staorder on staorder.StaOrder_ID = orders.order_stat_ID
       WHERE order_stat_ID IN ('SOD000002') ${searchCondition}
       LIMIT ? OFFSET ?;
     `;
-    
-    // รัน query ในฐานข้อมูลและส่งค่าผลลัพธ์มาให้
+
     const [result] = await db.promise().query(query, [...searchValue, parseInt(limit), parseInt(offset)]);
 
-    // หากไม่พบข้อมูลที่ตรงกับเงื่อนไข
     if (result.length === 0) {
       return res.status(404).json({ error: "ไม่พบข้อมูลการแจ้งซ่อม" });
     }
 
-    // แปลงรูปแบบวันที่ให้เป็นวันที่ในรูปแบบไทย
-    const formattedResult = result.map((item) => ({
-      ...item,
-      date: new Date(item.date).toLocaleDateString("th-TH", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
+    // ดึงข้อมูลของรายการสินค้าที่เกี่ยวข้องกับใบสั่งซื้อ
+    const orderDetails = await Promise.all(result.map(async (order) => {
+      const itemsQuery = "SELECT * FROM orderlist WHERE orderlist_orders_ID = ?";
+      const [items] = await db.promise().query(itemsQuery, [order.order_ID]);
+      order.items = items;
+      return order;
     }));
 
-    // ส่งผลลัพธ์กลับไปที่ frontend ในรูปแบบ JSON
-    res.status(200).json(formattedResult);
+    // ส่งผลลัพธ์กลับไปที่ frontend
+    res.status(200).json(orderDetails);
   } catch (err) {
-    // ถ้ามีข้อผิดพลาดในการดึงข้อมูลจากฐานข้อมูล
-    // จะแสดงข้อผิดพลาดใน console และส่งสถานะ 500 (Internal Server Error) พร้อมข้อความ
     console.error("Error fetching orders:", err);
     res.status(500).json({ error: "Error fetching orders" });
   }
 };
+
+// ฟังก์ชันในการสร้างใบสั่งซื้อเป็น PDF
+const createOrderPDF = async (req, res) => {
+  const { order_ID } = req.params; // รับค่า order_ID จาก URL parameters
+
+  try {
+    // ดึงข้อมูลใบสั่งซื้อจากฐานข้อมูล
+    const query = `
+      SELECT order_ID, order_user_ID, date, order_stat_ID, total
+      FROM orders
+      WHERE order_ID = ?;
+    `;
+    const [order] = await db.promise().query(query, [order_ID]);
+
+    if (order.length === 0) {
+      return res.status(404).json({ error: "ไม่พบข้อมูลใบสั่งซื้อ" });
+    }
+
+    // ดึงรายการสินค้า
+    const itemsQuery = "SELECT * FROM orderlist WHERE orderlist_orders_ID = ?";
+    const [items] = await db.promise().query(itemsQuery, [order[0].order_ID]);
+
+    // เพิ่มรายการสินค้าในข้อมูลใบสั่งซื้อ
+    order[0].items = items;
+
+    // สร้าง PDF ใบสั่งซื้อ
+    generateInvoicePDF(order[0], res);
+
+  } catch (err) {
+    console.error("Error creating PDF:", err);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการสร้าง PDF" });
+  }
+};
+
+
 
 
 const orderdata = async (req, res) => {
@@ -199,5 +270,6 @@ const listByOrder = async (req, res) => {
 
 module.exports = {
   createOrder,
-  getPendingOrders
+  getPendingOrders,
+  createOrderPDF
 };

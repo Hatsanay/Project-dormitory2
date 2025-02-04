@@ -178,6 +178,7 @@ const {
 const {
   createOrder,
   getPendingOrders,
+  createOrderPDF,
 } = require("../controllers/orderControler");
 
 // const {
@@ -386,4 +387,5 @@ router.put("/updateStatusPetitionType", authenticateToken, updateStatusPetitionT
 //new โครงการ 2 -------------------------------------------------------------------ดิ๊กเขียน
 router.post("/createOrder", authenticateToken, createOrder);
 router.get("/getPendingOrders", authenticateToken, getPendingOrders);
+router.get("/orders/:order_ID/pdf", authenticateToken, createOrderPDF);
 module.exports = router;

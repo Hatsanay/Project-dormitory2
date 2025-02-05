@@ -50,7 +50,7 @@
               @click="$router.push('/orderCreate')"
             >
               <i class="fa-solid fa-plus"></i>
-              แจ้งซ่อมบำรุง
+              ออกใบสั่งซื้อ
             </CButton>
           </CCol>
         </CRow>

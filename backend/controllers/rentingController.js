@@ -132,7 +132,8 @@ const getUserForRenting = async (req, res) => {
       CONCAT(users.user_Fname,' ', users.user_Lname) AS userName
     FROM 
       users
-    WHERE user_status_ID = "STU000001" 
+      INNER JOIN roles on roles.role_ID = users.user_Role_ID
+    WHERE user_status_ID = "STU000001" AND roles.role_ID = "ROL000002"
     `;
     const [result] = await db.promise().query(query);
     res.status(200).json(result);

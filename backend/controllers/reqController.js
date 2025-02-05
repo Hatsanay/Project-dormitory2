@@ -21,6 +21,7 @@ const getReqById = async (req, res) => {
     mainr_Date,
     petitiontype.Type AS Type,
     stacase.StaCase_Name AS status,
+    mainr_Stat_ID AS status_ID,
     CONCAT(
         MIN(schedulerepairs.Date), ' ', 
         MIN(schedulerepairs.startTime), ' - ', 

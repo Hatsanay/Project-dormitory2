@@ -20,7 +20,7 @@
           href="#"
         >
           <i class="fa-solid fa-cart-plus"></i>
-          แจ้งเบิกวัสดุอุปกรณ์
+          แจ้งเบิกวัสดุ
         </a>
       </li>
       <li class="nav-item">
@@ -70,7 +70,23 @@
             class="mb-4"
           >
             <CCard class="card-modern" @click="showModalTab1(item)">
-              <CCardHeader class="card-header-modern">
+              <CCardHeader
+                class="card-header-modern"
+                v-if="item.status_ID === 'STC000002' && item.asp_detail === ''"
+                :class="{ 'bg-warning text-dark': item.status_ID === 'STC000002' }"
+              >
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5 class="m-0 card-title-modern">
+                    <i class="fa-solid fa-circle-user"></i> ผู้แจ้ง: {{ item.fullname }}
+                  </h5>
+                  <span class="date-modern">{{ item.mainr_Date }}</span>
+                </div>
+              </CCardHeader>
+              <CCardHeader
+                class="card-header-modern"
+                v-else
+                :class="{ 'bg-secondary': item.asp_detail !== '' }"
+              >
                 <div class="d-flex justify-content-between align-items-center">
                   <h5 class="m-0 card-title-modern">
                     <i class="fa-solid fa-circle-user"></i> ผู้แจ้ง: {{ item.fullname }}
@@ -101,9 +117,43 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                   <p></p>
-                  <p class="status-modern mb-0">
-                    <strong>สถานะ:</strong> {{ item.status }}
+                  <p v-if="item.status_ID != 'STC000009' && item.status_ID != 'STC000010'" class="status-modern mb-0">
+                    <div
+                  v-if="item.scheduleTime"
+                  class="d-flex justify-content-betwedivalign-items-center"
+                >
+                  <p></p>
+                  <p v-if="item.status_ID != 'STC000003'" class="status-modern mb-0">
+                    <strong>เวลานัด:</strong> {{ item.scheduleTime }}
                   </p>
+                </div >
+                <div v-if="item.status_ID === 'STC000002' && item.asp_detail === ''">
+                  <strong>สถานะ:</strong> {{ item.status }}
+                </div>
+                <div v-if="item.status_ID === 'STC000002' && item.asp_detail !== ''">
+                  <strong>สถานะ:</strong> {{ item.status }} (ทำต่อที่หน้าแจ้งเบิกวัสดุ)
+                </div>
+
+                <div v-if="item.scheduleTime">
+                  <strong>สถานะ:</strong> {{ item.status }} 
+                  <!-- (ทำต่อที่หน้ากำลังดำเนินการซ่อม) -->
+                </div>
+                
+                  </p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <p></p>
+                  <p v-if="item.status_ID == 'STC000009'" class="status-modern mb-0">
+                    <strong>สถานะ:</strong> {{ item.status }} (รอรับเรื่องเบิก)
+                  </p>
+                  
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                  <p></p>
+                  <div v-if="item.status_ID === 'STC000010' && item.asp_detail !== ''" class="status-modern mb-0">
+                  <strong>สถานะ:</strong> {{ item.status }} (ทำต่อที่หน้าแจ้งเบิกวัสดุ)
+                </div>
                 </div>
               </CCardBody>
             </CCard>
@@ -199,10 +249,29 @@
 
           <CModalFooter>
             <CButton color="secondary" @click="closeModelDetailRequestTab1">ปิด</CButton>
-            <CButton color="primary" @click="assessProblemReqTab1(selectedUserTab1)">
+            <CButton
+              v-if="
+                selectedUserTab1.status_ID == 'STC000002' &&
+                selectedUserTab1.asp_detail == ''
+              "
+              color="primary"
+              @click="assessProblemReqTab1(selectedUserTab1)"
+            >
               <i class="fa-solid fa-check"></i>
               รับเรื่องการแจ้งซ่อม
             </CButton>
+
+            <!-- <CButton
+              v-if="
+                selectedUserTab1.status_ID == 'STC000002' &&
+                selectedUserTab1.asp_detail != ''
+              "
+              color="success text-light"
+              @click="setActiveTab('2')"
+            >
+              <i class="fa-solid fa-check"></i>
+              ไปหน้าแจ้งเบิก
+            </CButton> -->
           </CModalFooter>
         </CModal>
 
@@ -1090,9 +1159,32 @@ export default {
     });
 
     const fetchRequestsTab1 = async () => {
+      const userId = localStorage.getItem("userID");
       try {
         const response = await axios.get(`/api/auth/getMacReq`);
         itemsTab1.value = response.data;
+
+        // จัดเรียงสถานะให้ "STC000001" ขึ้นมาก่อน
+        itemsTab1.value.sort((a, b) => {
+          if (
+            a.mainr_Stat_ID === "STC000002" &&
+            b.mainr_Stat_ID !== "STC000002"
+            // &&
+            // a.asp_detail === "" &&
+            // b.asp_detail !== ""
+          ) {
+            return 1;
+          } else if (
+            a.mainr_Stat_ID !== "STC000002" &&
+            b.mainr_Stat_ID === "STC000002"
+            // &&
+            // a.asp_detail !== "" &&
+            // b.asp_detail === ""
+          ) {
+            return 2;
+          }
+          return 0;
+        });
       } catch (error) {
         console.error("เกิดข้อผิดพลาดในการดึงข้อมูลการแจ้งซ่อม:", error);
       }
@@ -1556,6 +1648,8 @@ export default {
       fetchRequestsTab1();
       fetchgetStatusReq();
     });
+
+    
 
     return {
       activeTab,

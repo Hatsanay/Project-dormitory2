@@ -179,6 +179,7 @@ const {
   createOrder,
   getPendingOrders,
   createOrderPDF,
+  getUserByIdfromOrder,
 } = require("../controllers/orderControler");
 
 // const {
@@ -403,6 +404,7 @@ router.put("/updateStatusPetitionType", authenticateToken, updateStatusPetitionT
 router.post("/createOrder", authenticateToken, createOrder);
 router.get("/getPendingOrders", authenticateToken, getPendingOrders);
 router.get("/orders/:order_ID/pdf", authenticateToken, createOrderPDF);
+router.get("/getUserByIdfromOrder", authenticateToken, getUserByIdfromOrder);
 
 
 //============== การเพิ่มวันลาเเละวันหยุด ======================

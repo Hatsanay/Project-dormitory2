@@ -88,7 +88,7 @@
                   class="d-flex justify-content-between align-items-center"
                 >
                   <p></p>
-                  <p class="status-modern mb-0">
+                  <p v-if="item.status_ID != 'STC000003'" class="status-modern mb-0">
                     <strong>เวลานัด:</strong> {{ item.scheduleTime }}
                   </p>
                 </div>

@@ -1,30 +1,91 @@
 const db = require("../config/db");
 require("dotenv").config();
 
+// const getReq = async (req, res) => {
+//   try {
+//     const query = `SELECT
+//       mainr_ID,
+//       CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
+//       room.room_Number AS roomNumber,
+//       mainr_ProblemTitle,
+//       mainr_ProblemDescription,
+//       mainr_Date,
+//       petitiontype.Type AS Type,
+//       stacase.StaCase_Name AS status,
+//       mainr_Stat_ID AS status_ID
+      
+//     FROM 
+//       maintenancerequests
+//         INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
+//         INNER JOIN users on users.user_ID = renting.renting_user_ID
+//         INNER JOIN petitiontype on petitiontype.ID = mainr_pattyp_ID
+//         INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
+//         INNER JOIN room on room.room_ID = renting.renting_room_ID
+//     WHERE
+//       maintenancerequests.mainr_Stat_ID IN ('STC000001', 'STC000002', 'STC000003', 'STC000004', 'STC000005', 'STC000009') -- เพิ่มสถานะที่ต้องการ
+//     ORDER BY
+//       FIELD(maintenancerequests.mainr_Stat_ID, 'STC000001') DESC, maintenancerequests.mainr_ID ASC`;  // สถานะ STC000001 จะอยู่ข้างบนสุด
+
+//     const [result] = await db.promise().query(query);
+//     if (result.length === 0) {
+//       return res.status(404).json({ error: "ไม่พบข้อมูลการแจ้งซ่อม" });
+//     }
+//     const formattedResult = result.map((item) => ({
+//       ...item,
+//       mainr_Date:
+//         new Date(item.mainr_Date).toLocaleDateString("th-TH", {
+//           day: "2-digit",
+//           month: "2-digit",
+//           year: "numeric",
+//         }) +
+//         " " +
+//         new Date(item.mainr_Date).toLocaleTimeString("th-TH", {
+//           hour: "2-digit",
+//           minute: "2-digit",
+//         }),
+//     }));
+
+//     res.status(200).json(formattedResult);
+//   } catch (err) {
+//     console.error("เกิดข้อผิดพลาด:", err);
+//     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+//   }
+// };
+
 const getReq = async (req, res) => {
   try {
     const query = `SELECT
-      mainr_ID,
-      CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
-      room.room_Number AS roomNumber,
-      mainr_ProblemTitle,
-      mainr_ProblemDescription,
-      mainr_Date,
-      petitiontype.Type AS Type,
-      stacase.StaCase_Name AS status
-    FROM 
-      maintenancerequests
-        INNER JOIN renting on renting.renting_ID = maintenancerequests.mainr_renting_ID
-        INNER JOIN users on users.user_ID = renting.renting_user_ID
-        INNER JOIN petitiontype on petitiontype.ID = mainr_pattyp_ID
-        INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
-        INNER JOIN room on room.room_ID = renting.renting_room_ID
-    WHERE
-      maintenancerequests.mainr_Stat_ID = "STC000001"
-    ORDER BY
-      maintenancerequests.mainr_ID ASC
-    `;
-    //STC000001 = รอนิติบุคคลตรวจสอบ
+    mainr_ID,
+    CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
+    room.room_Number AS roomNumber,
+    mainr_ProblemTitle,
+    mainr_ProblemDescription,
+    mainr_Date,
+    petitiontype.Type AS Type,
+    mainr_Stat_ID AS status_ID,
+    stacase.StaCase_Name AS status,
+    CONCAT(
+        MIN(schedulerepairs.Date), ' ', 
+        MIN(schedulerepairs.startTime), ' - ', 
+        MIN(schedulerepairs.endTime)
+    ) AS scheduleTime,
+    MIN(schedulerepairs.Date) AS Date,
+    MIN(schedulerepairs.startTime) AS startTime,
+    MIN(schedulerepairs.endTime) AS endTime
+FROM 
+    maintenancerequests
+    INNER JOIN renting ON renting.renting_ID = maintenancerequests.mainr_renting_ID
+    INNER JOIN users ON users.user_ID = renting.renting_user_ID
+    INNER JOIN petitiontype ON petitiontype.ID = maintenancerequests.mainr_pattyp_ID
+    INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
+    INNER JOIN room ON room.room_ID = renting.renting_room_ID
+    LEFT JOIN schedulerepairs ON schedulerepairs.sdr_mainr_ID = maintenancerequests.mainr_ID
+WHERE
+maintenancerequests.mainr_Stat_ID IN ('STC000001', 'STC000002', 'STC000003', 'STC000004', 'STC000005', 'STC000009', 'STC000010')
+GROUP BY
+    mainr_ID
+ORDER BY
+    FIELD(maintenancerequests.mainr_Stat_ID, 'STC000001') DESC, maintenancerequests.mainr_ID ASC`;
 
     const [result] = await db.promise().query(query);
     if (result.length === 0) {
@@ -51,6 +112,7 @@ const getReq = async (req, res) => {
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
   }
 };
+
 
 const getReqhistory = async (req, res) => {
   try {
@@ -169,29 +231,96 @@ const sendtomacReq = async (req, res) => {
   }
 };
 
+// const getMacReq = async (req, res) => {
+//   try {
+//     const query = `SELECT
+//         mainr_ID,
+//         CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
+//         room.room_Number AS roomNumber,
+//         mainr_ProblemTitle,
+//         mainr_ProblemDescription,
+//         mainr_Date,
+//         petitiontype.Type AS Type,
+//         stacase.StaCase_Name AS status
+//       FROM 
+//         maintenancerequests
+//         INNER JOIN renting ON renting.renting_ID = maintenancerequests.mainr_renting_ID
+//         INNER JOIN users ON users.user_ID = renting.renting_user_ID
+//         INNER JOIN petitiontype ON petitiontype.ID = mainr_pattyp_ID
+//         INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
+//         INNER JOIN room ON room.room_ID = renting.renting_room_ID
+//       WHERE
+//         maintenancerequests.mainr_Stat_ID = "STC000002"
+//         AND asp_detail = ""
+//       ORDER BY
+//         maintenancerequests.mainr_ID ASC
+//     `;
+//     //STC000002 = รอเจ้าหน้าที่ซ่อมบำรุงตรวจสอบ
+
+//     const [result] = await db.promise().query(query);
+//     if (result.length === 0) {
+//       return res.status(404).json({ error: "ไม่พบข้อมูลการแจ้งซ่อม" });
+//     }
+//     const formattedResult = result.map((item) => ({
+//       ...item,
+//       mainr_Date:
+//         new Date(item.mainr_Date).toLocaleDateString("th-TH", {
+//           day: "2-digit",
+//           month: "2-digit",
+//           year: "numeric",
+//         }) +
+//         " " +
+//         new Date(item.mainr_Date).toLocaleTimeString("th-TH", {
+//           hour: "2-digit",
+//           minute: "2-digit",
+//         }),
+//     }));
+
+//     res.status(200).json(formattedResult);
+//   } catch (err) {
+//     console.error("เกิดข้อผิดพลาด:", err);
+//     res.status(500).json({ error: "เกิดข้อผิดพลาดในการดำเนินการ" });
+//   }
+// };
+
 const getMacReq = async (req, res) => {
   try {
     const query = `SELECT
-        mainr_ID,
-        CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
-        room.room_Number AS roomNumber,
-        mainr_ProblemTitle,
-        mainr_ProblemDescription,
-        mainr_Date,
-        petitiontype.Type AS Type,
-        stacase.StaCase_Name AS status
-      FROM 
-        maintenancerequests
-        INNER JOIN renting ON renting.renting_ID = maintenancerequests.mainr_renting_ID
-        INNER JOIN users ON users.user_ID = renting.renting_user_ID
-        INNER JOIN petitiontype ON petitiontype.ID = mainr_pattyp_ID
-        INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
-        INNER JOIN room ON room.room_ID = renting.renting_room_ID
-      WHERE
-        maintenancerequests.mainr_Stat_ID = "STC000002"
-        AND asp_detail = ""
-      ORDER BY
-        maintenancerequests.mainr_ID ASC
+    mainr_ID,
+    CONCAT(users.user_Fname, ' ', users.user_Lname) AS fullname,
+    room.room_Number AS roomNumber,
+    mainr_ProblemTitle,
+    mainr_ProblemDescription,
+    mainr_Date,
+    petitiontype.Type AS Type,
+    stacase.StaCase_Name AS status,
+    maintenancerequests.asp_detail AS asp_detail,
+    mainr_Stat_ID AS status_ID,
+    CONCAT(
+      MIN(schedulerepairs.Date), ' ', 
+      MIN(schedulerepairs.startTime), ' - ', 
+      MIN(schedulerepairs.endTime)
+  ) AS scheduleTime,
+  MIN(schedulerepairs.Date) AS Date,
+  MIN(schedulerepairs.startTime) AS startTime,
+  MIN(schedulerepairs.endTime) AS endTime
+  FROM 
+    maintenancerequests
+    INNER JOIN renting ON renting.renting_ID = maintenancerequests.mainr_renting_ID
+    INNER JOIN users ON users.user_ID = renting.renting_user_ID
+    INNER JOIN petitiontype ON petitiontype.ID = mainr_pattyp_ID
+    INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
+    INNER JOIN room ON room.room_ID = renting.renting_room_ID
+    LEFT JOIN schedulerepairs ON schedulerepairs.sdr_mainr_ID = maintenancerequests.mainr_ID
+    WHERE
+    maintenancerequests.mainr_Stat_ID IN ('STC000002', 'STC000003', 'STC000004', 'STC000005', 'STC000009', 'STC000010')
+    GROUP BY
+      mainr_ID
+      ORDER BY 
+    CASE WHEN maintenancerequests.mainr_Stat_ID = 'STC000002' AND maintenancerequests.asp_detail = '' THEN 1 ELSE 0 END DESC,
+    FIELD(maintenancerequests.mainr_Stat_ID, 'STC000002') DESC, 
+    maintenancerequests.mainr_ID ASC
+    
     `;
     //STC000002 = รอเจ้าหน้าที่ซ่อมบำรุงตรวจสอบ
 
@@ -248,7 +377,7 @@ const getMacReqById = async (req, res) => {
         INNER JOIN stacase ON stacase.StaCase_ID = maintenancerequests.mainr_Stat_ID
         INNER JOIN room on room.room_ID = renting.renting_room_ID
     WHERE
-      maintenancerequests.mainr_Stat_ID = "STC000002"
+      maintenancerequests.mainr_Stat_ID = "STC000002" AND maintenancerequests.asp_detail != ""
       OR maintenancerequests.mainr_Stat_ID = "STC000010"
     ORDER BY
       maintenancerequests.mainr_ID ASC

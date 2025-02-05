@@ -43,7 +43,24 @@
         <CRow>
           <CCol v-for="item in paginatedItems" :key="item.mainr_ID" md="12" class="mb-4">
             <CCard class="card-modern" @click="showModal(item)">
-              <CCardHeader class="card-header-modern">
+              <CCardHeader
+                class="card-header-modern"
+                v-if="item.status_ID === 'STC000001'"
+                :class="{ 'bg-warning text-dark': item.status_ID === 'STC000001' }"
+              >
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5 class="m-0 card-title-modern">
+                    <i class="fa-solid fa-circle-user"></i> ผู้แจ้ง: {{ item.fullname }}
+                  </h5>
+                  <span class="date-modern text-dark">{{ item.mainr_Date }}</span>
+                </div>
+              </CCardHeader>
+
+              <CCardHeader
+                class="card-header-modern"
+                v-else
+                :class="{ 'bg-secondary': item.status_ID !== 'STC000001' }"
+              >
                 <div class="d-flex justify-content-between align-items-center">
                   <h5 class="m-0 card-title-modern">
                     <i class="fa-solid fa-circle-user"></i> ผู้แจ้ง: {{ item.fullname }}
@@ -51,6 +68,7 @@
                   <span class="date-modern">{{ item.mainr_Date }}</span>
                 </div>
               </CCardHeader>
+
               <CCardBody>
                 <div class="d-flex flex-column">
                   <p>
@@ -74,8 +92,23 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                   <p></p>
-                  <p class="status-modern mb-0">
+                  <p v-if="item.status_ID != 'STC000009'" class="status-modern mb-0">
+                    <div
+                  v-if="item.scheduleTime"
+                  class="d-flex justify-content-between align-items-center"
+                >
+                  <p></p>
+                  <p v-if="item.status_ID != 'STC000003'" class="status-modern mb-0">
+                    <strong>เวลานัด:</strong> {{ item.scheduleTime }}
+                  </p>
+                </div>
                     <strong>สถานะ:</strong> {{ item.status }}
+                  </p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <p></p>
+                  <p v-if="item.status_ID == 'STC000009'" class="status-modern mb-0">
+                    <strong>สถานะ:</strong> {{ item.status }} (รอรับเรื่องเบิก)
                   </p>
                 </div>
               </CCardBody>
@@ -177,6 +210,7 @@
                     <strong>สถานะ:</strong> {{ item.status }}
                   </p>
                 </div>
+
                 <div
                   v-if="item.SuccessDate != 'Invalid Date Invalid Date'"
                   class="d-flex justify-content-between align-items-center"
@@ -263,9 +297,10 @@
         <p style="word-wrap: break-word; white-space: pre-wrap">
           <strong>ประเภท:</strong> {{ selectedUser.Type }}
         </p>
-        <p style="word-wrap: break-word; white-space: pre-wrap">
+        <p tyle="word-wrap: break-word; white-space: pre-wrap">
           <strong>สถานะ:</strong> {{ selectedUser.status }}
         </p>
+
 
         <div v-if="imageUrls.length > 0" class="mt-3">
           <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center">
@@ -288,13 +323,39 @@
 
       <CModalFooter>
         <CButton color="secondary" @click="closeModelDetailRequest">ปิด</CButton>
-        <CButton class="frontwhite" color="danger" @click="denyClick(selectedUser)">
+        <CButton
+          v-if="selectedUser.status_ID == 'STC000001'"
+          class="frontwhite"
+          color="danger"
+          @click="denyClick(selectedUser)"
+        >
           <i class="fa-solid fa-ban"></i>
           ปฎิเสธ
         </CButton>
-        <CButton color="primary" @click="sendtomac(selectedUser)">
+        <CButton
+          v-if="selectedUser.status_ID == 'STC000001'"
+          color="primary"
+          @click="sendtomac(selectedUser)"
+        >
           <i class="fa-solid fa-paper-plane"></i>
           ส่งคำร้องให้ช่างตรวจสอบ
+        </CButton>
+
+        <CButton
+          v-if="selectedUser.status_ID == 'STC000003'"
+          color="success text-light"
+          @click="$router.push('/starffTimeReqView')"
+        >
+          <i class="fa-solid fa-paper-plane"></i>
+          ไปหน้านัดเวลา
+        </CButton>
+        <CButton
+          v-if="selectedUser.status_ID == 'STC000009'"
+          color="success text-light"
+          @click="$router.push('/starffWithdrawReqView')"
+        >
+          <i class="fa-solid fa-paper-plane"></i>
+          ไปหน้ารับเรื่องเบิก
         </CButton>
       </CModalFooter>
     </CModal>
@@ -319,7 +380,7 @@
         <p><strong>หัวเรื่อง:</strong> {{ selectedUser.mainr_ProblemTitle }}</p>
         <p><strong>รายละเอียด:</strong> {{ selectedUser.mainr_ProblemDescription }}</p>
         <p><strong>ประเภท:</strong> {{ selectedUser.Type }}</p>
-        <p><strong>สถานะ:</strong> {{ selectedUser.status }}</p>
+        <p><strong>สถานะ:</strong> {{ selectedUser.status_ID }}</p>
 
         <div v-if="imageUrls.length > 0" class="mt-3">
           <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center">
@@ -409,6 +470,16 @@ export default {
       try {
         const response = await axios.get(`/api/auth/getReq`);
         items.value = response.data;
+
+        // จัดเรียงสถานะให้ "STC000001" ขึ้นมาก่อน
+        items.value.sort((a, b) => {
+          if (a.mainr_Stat_ID === "STC000001" && b.mainr_Stat_ID !== "STC000001") {
+            return -1;
+          } else if (a.mainr_Stat_ID !== "STC000001" && b.mainr_Stat_ID === "STC000001") {
+            return 1;
+          }
+          return 0;
+        });
       } catch (error) {
         console.error("เกิดข้อผิดพลาดในการดึงข้อมูลการแจ้งซ่อม:", error);
       }
@@ -713,5 +784,9 @@ export default {
   border-radius: 5px;
   padding: 5px;
   border: 1px solid #ced4da;
+}
+
+.custom-bg {
+  background-color: #ffd000; /* สีเขียวอ่อน */
 }
 </style>

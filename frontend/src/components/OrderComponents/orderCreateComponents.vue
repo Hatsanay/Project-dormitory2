@@ -141,10 +141,10 @@ export default {
     };
 
     // ดึงข้อมูลผู้ใช้จาก API
-    const getUserByIdfromReq = async (uid) => {
+    const getUserByIdfromOrder = async (uid) => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("/api/auth/getUserByIdfromReq", {
+        const response = await axios.get("/api/auth/getUserByIdfromOrder", {
           params: { id: uid },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -298,8 +298,9 @@ export default {
 
     // ดึงข้อมูลผู้ใช้และสต็อกเมื่อคอมโพเนนต์ถูกโหลด
     onMounted(() => {
+      console.log(userId.value);
       if (userId.value) {
-        getUserByIdfromReq(userId.value);
+        getUserByIdfromOrder(userId.value);
       }
       fetchStock();
     });

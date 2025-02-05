@@ -127,7 +127,7 @@ export default {
 
 <style scoped>
 .wrapper {
-  background-image: url('/path-to-your-background-image.jpg');
+  /* background-image: url('/path-to-your-background-image.jpg'); */
   background-size: cover;
   background-position: center;
 }

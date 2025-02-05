@@ -164,7 +164,7 @@ export default [
   {
     component: 'CNavTitle',
     name: 'ตั้งค่าข้อมูลระบบ',
-    permission_index: [18, 21, 24, 27, 30],
+    permission_index: [18, 21, 30],
   },
 
   {
@@ -185,18 +185,18 @@ export default [
         to: '/ViewTypeStockView',
         permission_index: 21,
       },
-      {
-        component: 'CNavItem',
-        name: 'จัดการข้อมูลสถานะ',
-        to: '/ViewStatusView',
-        permission_index: 24,
-      },
-      {
-        component: 'CNavItem',
-        name: 'จัดการข้อมูลประเภทสถานะ',
-        to: '/ViewTypeStatusView',
-        permission_index: 27,
-      },
+      // {
+      //   component: 'CNavItem',
+      //   name: 'จัดการข้อมูลสถานะ',
+      //   to: '/ViewStatusView',
+      //   permission_index: 24,
+      // },
+      // {
+      //   component: 'CNavItem',
+      //   name: 'จัดการข้อมูลประเภทสถานะ',
+      //   to: '/ViewTypeStatusView',
+      //   permission_index: 27,
+      // },
       {
         component: 'CNavItem',
         name: 'จัดการข้อมูลหน่วย',

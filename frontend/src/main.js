@@ -15,7 +15,7 @@ import axios from 'axios'
 
 
 axios.defaults.baseURL = 'http://localhost:3030'  //local
-// axios.defaults.baseURL = 'http://localhost:3030'  //hosting
+// axios.defaults.baseURL = 'https://manageserver.dktimeh.com'  //hosting
 
 
 const token = localStorage.getItem('token')

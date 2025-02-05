@@ -20,7 +20,7 @@ const registerPetitionType = async (req, res) => {
     }
     const num = maxId + 1;
     const newPetitionTypeID = "PTT" + String(num).padStart(6, "0");
-    const statusPetitionType = "STA000006";
+    const statusPetitionType = "SUS000001";
 
     ///////บันทึกลงฐานข้อมูล//////////
     const insertQuery = `
@@ -82,12 +82,12 @@ const getPetitionTypeForView = async (req, res) => {
     SELECT  
       ID, 
       Type ,
-      status.stat_Name,
+      stause.StaUse_Name AS stat_Name,
       petitiontype.petitionType_stat_ID
     FROM 
       petitiontype
-    INNER JOIN status ON status.stat_ID = petitiontype.petitionType_stat_ID
-    WHERE petitiontype.petitionType_stat_ID = 'STA000006'
+    INNER JOIN stause ON stause.StaUse_ID = petitiontype.petitionType_stat_ID
+    WHERE petitiontype.petitionType_stat_ID = 'SUS000001'
     `;
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
@@ -182,7 +182,7 @@ const updateStatusPetitionType = async (req, res) => {
 
 const getDeletablePetitionTypes = async (req, res) => {
   try {
-    const query = 'SELECT * FROM status WHERE stat_StatTypID = "STT000002"'; 
+    const query = 'SELECT * FROM status WHERE stat_StatTypID = "SUS000002"'; 
     const [result] = await db.promise().query(query);
     res.status(200).json(result);
   } catch (err) {

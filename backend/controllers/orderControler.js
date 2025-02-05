@@ -31,6 +31,10 @@ const AutoIDorder = async () => {
 
 
 
+
+
+
+
 // ฟังก์ชันในการสร้างใบสั่งซื้อ
 const createOrder = async (req, res) => {
   try {
@@ -108,6 +112,116 @@ const createOrder = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// ฟังก์ชัน GenerateAutoID ที่จะสร้าง AutoID ใหม่
+
+const GenerateAutoID = async (table_name) => {
+  try {
+    // กำหนด prefix วันที่เป็น ddmmyy
+    const todayPrefix = new Date().toLocaleDateString('en-GB').replace(/\//g, '').slice(0, 6);
+
+    // ดึงค่า max_id ล่าสุดจากตาราง maxid ที่ตรงกับ table_name
+    const [lastIdResult] = await db.promise().query(
+      'SELECT max_id FROM maxid WHERE max_table = ? ORDER BY max_id DESC LIMIT 1',
+      [table_name]
+    );
+
+    let nextNumber = '001'; // เริ่มต้นที่ 001
+    if (lastIdResult.length > 0) {
+      const lastId = lastIdResult[0].max_id;
+      
+      // ตรวจสอบว่า last_id เป็นของวันเดียวกันหรือไม่
+      if (lastId.startsWith(todayPrefix)) {
+        // ถ้าใช่ให้เพิ่มหมายเลขถัดไป
+        const lastNumber = parseInt(lastId.slice(6), 10);
+        nextNumber = (lastNumber + 1).toString().padStart(3, '0');
+      }
+    }
+
+    // สร้าง new_id ใหม่
+    const newId = todayPrefix + nextNumber;
+    return newId;
+  } catch (err) {
+    console.error('Error generating AutoID:', err);
+    throw err;
+  }
+};
+
+// // ฟังก์ชันในการสร้างใบสั่งซื้อ
+// const createOrder = async (req, res) => {
+//   try {
+//     // ดึงข้อมูลจาก request body
+//     const { order_user_ID, date, total, items } = req.body;
+
+//     // เรียกใช้ GenerateAutoID เพื่อดึง Order ID
+//     let orderID = await GenerateAutoID('orders');
+//     console.log("Generated Order ID:", orderID); // ตรวจสอบข้อมูลที่ได้รับ
+
+//     // ตรวจสอบว่า order_ID ซ้ำกับที่มีอยู่ในฐานข้อมูลหรือไม่
+//     const checkOrderIDQuery =
+//       "SELECT COUNT(*) AS count FROM orders WHERE order_ID = ?";
+//     const [checkResult] = await db
+//       .promise()
+//       .query(checkOrderIDQuery, [orderID]);
+
+//     if (checkResult[0].count > 0) {
+//       // หาก order_ID ซ้ำ ให้เรียก GenerateAutoID ใหม่เพื่อสร้าง ID ใหม่
+//       console.log("Order ID ซ้ำ! กำลังสร้าง Order ID ใหม่...");
+//       orderID = await GenerateAutoID('orders');
+//     }
+
+//     // บันทึกข้อมูลในตาราง orders
+//     const orderQuery = `
+//         INSERT INTO orders (order_ID, order_user_ID, date, order_stat_ID, total)
+//         VALUES (?, ?, ?, ?, ?)
+//       `;
+//     await db
+//       .promise()
+//       .query(orderQuery, [
+//         orderID,
+//         order_user_ID,
+//         date,
+//         (order_stat_ID = "SOD000002"),
+//         total,
+//       ]);
+
+//     // อัปเดต max_id สำหรับ orders
+//     await updateMaxID("orders", orderID);
+
+//     let countnumber = 1;
+//     // บันทึกรายการสินค้าในตาราง orderlist
+//     for (const item of items) {
+//       // บันทึกข้อมูลในตาราง orderlist
+//       const orderlistQuery = `
+//   INSERT INTO orderlist (number, orderlist_orders_ID, orderlist_stock_ID, stockname, quantity, unit, price, totalprice)
+//   VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+// `;
+//       await db
+//         .promise()
+//         .query(orderlistQuery, [
+//           countnumber,
+//           orderID,
+//           item.orderlist_stock_ID,
+//           item.stockname,
+//           item.quantity,
+//           item.unit,
+//           item.price,
+//           item.totalprice,
+//         ]);
+
+//       countnumber++;
+//     }
+
+//     // ส่งคำตอบกลับไปที่ฟรอนต์เอนด์
+//     res.status(201).json({
+//       message: "ใบสั่งซื้อถูกสร้างขึ้นเรียบร้อยแล้ว",
+//       orderID: orderID, // ส่ง Order ID ที่สร้างใหม่กลับไป
+//     });
+//   } catch (err) {
+//     console.error("เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ:", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
 
 const generateInvoicePDF = async (order, res) => {
